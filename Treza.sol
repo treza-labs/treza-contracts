@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title TrezaToken
-/// @author Your Name or Organization
+/// @author Brandon Torres and Treza Labs
 /// @notice ERC20 token with dynamic fees, split to two treasury wallets, initial category allocations, vesting, and LP timelock helper.
 /// @dev Inherits from OpenZeppelin ERC20 and Ownable. Uses SafeERC20 for safe transfers.
 contract TrezaToken is ERC20, Ownable {
