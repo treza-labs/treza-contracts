@@ -2,29 +2,51 @@
 
 ## Overview
 
-Treza Token (`TREZA`) is a custom ERC20 token with built-in transfer fees and vesting functionality, designed to support sustainable treasury growth and fair contributor rewards. This implementation provides two core components:
-
-- **TrezaToken.sol** — An ERC20 token with a dynamic transfer fee routed to a treasury wallet.
-- **TokenVesting.sol** — A linear vesting contract with a 6-month cliff, allowing deferred token releases for contributors or advisors.
+Treza Token is an ERC20-compliant cryptocurrency designed with dynamic transfer fees, structured initial token allocations, and robust vesting and timelock mechanisms. This smart contract provides a full tokenomics suite with built-in treasury routing, advisor vesting, and liquidity lock capabilities, all managed through secure and configurable parameters.
 
 ---
 
-## 📦 Features
+## Key Features
 
-### ✅ TrezaToken (ERC20)
+### 📊 Fixed Supply and Allocations
+The total token supply is fixed at 100 million TREZA. Upon deployment, the contract allocates:
+- 40% to community incentives,
+- 25% to ecosystem and grants,
+- 20% to the team,
+- 15% to advisors, with vesting.
 
-- **4% Transfer Fee**: Every token transfer deducts a 4% fee (default), which is sent to a designated treasury wallet.
-- **Dynamic Fee Configuration**: The owner can adjust the fee percentage up to a maximum of 10%.
-- **Treasury Wallet Management**: The fee collection address can be updated by the contract owner.
-- **Standard ERC20 Compliance**: Compatible with wallets, exchanges, and dApps that support ERC20.
+Advisors receive their allocation through an integrated linear vesting contract with a configurable cliff and full vesting duration.
+
+---
+
+### 💸 Dynamic Transfer Fees
+Treza implements a time-based fee model:
+- Initially, a 4% fee is applied to all transfers.
+- After a specified period, the fee reduces to 2%.
+- Eventually, the fee drops to 0% permanently.
+
+Fees are automatically split between two treasury wallets and exempt addresses (e.g., treasury, vesting contract, timelock contracts) do not incur fees.
 
 ---
 
-### 🕒 TokenVesting
-
-- **Cliff Vesting**: Tokens are locked for an initial 6-month period.
-- **Linear Release**: After the cliff, tokens vest linearly until the end of the total duration.
-- **Immutable Parameters**: Vesting start time, cliff, and duration are all set at deployment and cannot be modified.
-- **Secure Withdrawals**: Only the beneficiary can call `release()` to withdraw vested tokens.
+### 🏛️ Treasury and Fee Management
+The owner can:
+- Update the treasury wallets that receive split fees.
+- Exempt or include addresses from the transfer fee mechanism.
+- View the current active fee percentage depending on time since deployment.
 
 ---
+
+### ⏳ Vesting and Timelocks
+The advisor allocation is subject to linear vesting with a configurable cliff, ensuring long-term alignment. Additionally, the contract provides the ability to deploy LP token timelocks via OpenZeppelin's `TokenTimelock`, which can be used to lock liquidity for a specified duration and exempt those contracts from transfer fees.
+
+---
+
+## 🔒 Security and Best Practices
+- Built on top of OpenZeppelin’s audited libraries.
+- Uses `SafeERC20` to prevent unsafe token transfers.
+- Protects against zero-address errors in all critical functions.
+- Provides event logs for changes to fee exemptions and treasury addresses.
+
+---
+
