@@ -135,6 +135,15 @@ The contract constructor requires the following inputs:
 
 ---
 
+## ⛽ Gas Optimization
+
+The Treza contract includes several gas-saving techniques:
+
+- 🧱 **Struct-based parameter passing** to avoid stack depth issues during deployment
+- ♻️ **Modular internal functions** for code reuse and maintainability
+- 🛑 **Early returns** in transfer logic when fees are not applicable
+- ⚖️ **Optimized fee splitting** with clean remainder handling (to prevent rounding errors)
+
 
 
 
