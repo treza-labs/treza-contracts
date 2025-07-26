@@ -108,6 +108,16 @@ Treza integrates with **OpenZeppelin’s TimelockController**:
 
    ---
 
+## 🚀 Deployment Parameters
+
+The contract constructor requires the following inputs:
+
+- 🧾 **Initial allocation wallet addresses**:  
+  - Community  
+  - Ecosystem  
+  - Team  
+  - Advisor
+
 
 
 
