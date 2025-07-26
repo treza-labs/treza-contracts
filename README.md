@@ -144,6 +144,9 @@ The Treza contract includes several gas-saving techniques:
 - 🛑 **Early returns** in transfer logic when fees are not applicable
 - ⚖️ **Optimized fee splitting** with clean remainder handling (to prevent rounding errors)
 
+  ---
+
+
 
 
 
