@@ -117,6 +117,17 @@ The contract constructor requires the following inputs:
   - Ecosystem  
   - Team  
   - Advisor
+ 
+  - 💰 **Three unique treasury wallet addresses** for dynamic fee collection
+
+- ⏱️ **Fee milestone durations**:  
+  - `dur1`: Time until fee drops from 4% → 2%  
+  - `dur2`: Time until fee drops from 2% → 0%
+
+- 📈 **Vesting parameters**:  
+  - Cliff duration  
+  - Total vesting duration
+
 
 
 
