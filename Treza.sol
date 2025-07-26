@@ -6,11 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/TokenTimelock.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/governance/TimelockController.sol";
 
 /// @title TrezaToken
 /// @author Brandon Torres and Treza Labs
-/// @notice ERC20 token with dynamic fees, split to two treasury wallets, initial category allocations, vesting, and LP timelock helper.
-/// @dev Inherits from OpenZeppelin ERC20 and Ownable. Uses SafeERC20 for safe transfers.
+/// @notice ERC20 token with dynamic fees, split to three treasury wallets, initial category allocations, vesting, and LP timelock helper.
+/// @dev Inherits from OpenZeppelin ERC20 and Ownable. Uses SafeERC20 for safe transfers. Integrates TimelockController for upgradeability.
 contract TrezaToken is ERC20, Ownable {
     using SafeERC20 for IERC20;
 
@@ -23,10 +24,16 @@ contract TrezaToken is ERC20, Ownable {
     uint256 public constant PCT_TEAM      = 20;  // 20%
     uint256 public constant PCT_ADVISOR   = 15;  // 15%
 
-    /// @notice Primary recipient of half the fee
+    /// @notice Fee split: 2.0%, 1.6%, 0.4% respectively (summing to 4%)
+    uint256 public constant FEE1_PCT = 50;   // 2.0% of total fee (50/100*4%)
+    uint256 public constant FEE2_PCT = 40;   // 1.6% of total fee (40/100*4%)
+    uint256 public constant FEE3_PCT = 10;   // 0.4% of total fee (10/100*4%)
+    uint256 public constant FEE_SPLIT_TOTAL = 100; // 100 parts in total
+
+    /// @notice Primary fee recipients
     address public treasuryWallet1;
-    /// @notice Secondary recipient of half the fee
     address public treasuryWallet2;
+    address public treasuryWallet3;
 
     /// @notice Mapping of addresses exempted from transfer fees
     mapping(address => bool) public isFeeExempt;
@@ -46,87 +53,146 @@ contract TrezaToken is ERC20, Ownable {
     /// @notice Address of the deployed vesting contract for advisors
     address public advisorVestingContract;
 
+    /// @notice Timelock controller for decentralized ownership
+    TimelockController public timelockController;
+
+    /// @dev Struct to hold constructor parameters to avoid stack too deep
+    struct ConstructorParams {
+        address communityWallet;
+        address ecosystemWallet;
+        address teamWallet;
+        address advisor;
+        address treasury1;
+        address treasury2;
+        address treasury3;
+        uint256 dur1;
+        uint256 dur2;
+        uint256 vestCliff;
+        uint256 vestDuration;
+        uint256 timelockDelay;
+    }
+
+
     /// @dev Emitted when fee wallets are updated
     /// @param old1 Previous first treasury wallet
     /// @param old2 Previous second treasury wallet
+    /// @param old3 Previous third treasury wallet
     /// @param new1 New first treasury wallet
     /// @param new2 New second treasury wallet
+    /// @param new3 New third treasury wallet
     event FeeWalletsUpdated(
         address indexed old1,
         address indexed old2,
-        address indexed new1,
-        address new2
+        address indexed old3,
+        address new1,
+        address new2,
+        address new3
     );
+
 
     /// @dev Emitted when an account's fee exemption status is toggled
     /// @param account The account affected
     /// @param isExempt Whether the account is now exempt
     event FeeExemptionUpdated(address indexed account, bool isExempt);
 
-    /// @param communityWallet   Address receiving 40% of tokens
-    /// @param ecosystemWallet   Address receiving 25% of tokens
-    /// @param teamWallet        Address receiving 20% of tokens
-    /// @param advisor           Address receiving vesting contract shares (15%)
-    /// @param _treasury1        First treasury fee wallet
-    /// @param _treasury2        Second treasury fee wallet
-    /// @param dur1              Seconds until fee drops 4%→2%
-    /// @param dur2              Seconds until fee drops 2%→0%
-    /// @param vestCliff         Cliff duration for advisor vesting
-    /// @param vestDuration      Total duration for advisor vesting
+    /// @dev Emitted when timelock controller is deployed and ownership transferred
+    /// @param timelock Address of the deployed timelock controller
+    event TimelockControllerSet(address indexed timelock);
+
+    /// @param params Struct containing all constructor parameters
+    /// @param proposers Array of addresses that can propose timelock operations
+    /// @param executors Array of addresses that can execute timelock operations
     constructor(
-        address communityWallet,
-        address ecosystemWallet,
-        address teamWallet,
-        address advisor,
-        address _treasury1,
-        address _treasury2,
-        uint256 dur1,
-        uint256 dur2,
-        uint256 vestCliff,
-        uint256 vestDuration
+        ConstructorParams memory params,
+        address[] memory proposers,
+        address[] memory executors
     )
         ERC20("Treza Token", "TREZA")
         Ownable(msg.sender)
     {
+        _validateAddresses(params);
+        _validateTreasuryWallets(params.treasury1, params.treasury2, params.treasury3);
+        
+        // Initialize milestones first to avoid stack issues
+        milestone1 = block.timestamp + params.dur1;
+        milestone2 = block.timestamp + params.dur2;
+        
+        _mintInitialAllocations(params);
+        _setupVesting(params);
+        _setupTreasuryWallets(params.treasury1, params.treasury2, params.treasury3);
+        _setupTimelock(proposers, executors, params.timelockDelay);
+    }
+
+    /// @dev Validates that all required addresses are not zero
+    function _validateAddresses(ConstructorParams memory params) private pure {
         require(
-            communityWallet  != address(0) &&
-            ecosystemWallet  != address(0) &&
-            teamWallet       != address(0) &&
-            advisor          != address(0) &&
-            _treasury1       != address(0) &&
-            _treasury2       != address(0),
+            params.communityWallet != address(0) &&
+            params.ecosystemWallet != address(0) &&
+            params.teamWallet != address(0) &&
+            params.advisor != address(0) &&
+            params.treasury1 != address(0) &&
+            params.treasury2 != address(0) &&
+            params.treasury3 != address(0),
             "Treza: zero address"
         );
+    }
+    
 
-        // Mint initial allocations
-        _mint(communityWallet, (TOTAL_SUPPLY * PCT_COMMUNITY) / 100);
-        _mint(ecosystemWallet, (TOTAL_SUPPLY * PCT_ECOSYSTEM) / 100);
-        _mint(teamWallet,      (TOTAL_SUPPLY * PCT_TEAM)      / 100);
+    /// @dev Validates that treasury wallets are unique
+    function _validateTreasuryWallets(address t1, address t2, address t3) private pure {
+        require(
+            t1 != t2 && t1 != t3 && t2 != t3,
+            "Treza: treasury wallets must be unique"
+        );
+    }
 
-        // Deploy vesting for advisor and fund it
+    /// @dev Mints initial token allocations
+    function _mintInitialAllocations(ConstructorParams memory params) private {
+        _mint(params.communityWallet, (TOTAL_SUPPLY * PCT_COMMUNITY) / 100);
+        _mint(params.ecosystemWallet, (TOTAL_SUPPLY * PCT_ECOSYSTEM) / 100);
+        _mint(params.teamWallet, (TOTAL_SUPPLY * PCT_TEAM) / 100);
+    }
+
+    /// @dev Sets up vesting contract for advisor
+    function _setupVesting(ConstructorParams memory params) private {
         TokenVesting vest = new TokenVesting(
             IERC20(this),
-            advisor,
+            params.advisor,
             block.timestamp,
-            vestCliff,
-            vestDuration
+            params.vestCliff,
+            params.vestDuration
         );
         advisorVestingContract = address(vest);
         _mint(advisorVestingContract, (TOTAL_SUPPLY * PCT_ADVISOR) / 100);
-
-        // Set and exempt treasury wallets
-        treasuryWallet1 = _treasury1;
-        treasuryWallet2 = _treasury2;
-        isFeeExempt[treasuryWallet1]        = true;
-        isFeeExempt[treasuryWallet2]        = true;
         isFeeExempt[advisorVestingContract] = true;
-        emit FeeExemptionUpdated(treasuryWallet1, true);
-        emit FeeExemptionUpdated(treasuryWallet2, true);
         emit FeeExemptionUpdated(advisorVestingContract, true);
+    }
 
-        // Initialize fee reduction milestones
-        milestone1 = block.timestamp + dur1;
-        milestone2 = block.timestamp + dur2;
+    /// @dev Sets up treasury wallets and exemptions
+    function _setupTreasuryWallets(address t1, address t2, address t3) private {
+        treasuryWallet1 = t1;
+        treasuryWallet2 = t2;
+        treasuryWallet3 = t3;
+        
+        isFeeExempt[t1] = true;
+        isFeeExempt[t2] = true;
+        isFeeExempt[t3] = true;
+        
+        emit FeeExemptionUpdated(t1, true);
+        emit FeeExemptionUpdated(t2, true);
+        emit FeeExemptionUpdated(t3, true);
+    }
+
+    /// @dev Sets up timelock controller
+    function _setupTimelock(
+        address[] memory proposers, 
+        address[] memory executors, 
+        uint256 delay
+    ) private {
+        TimelockController timelock = new TimelockController(delay, proposers, executors, msg.sender);
+        timelockController = timelock;
+        _transferOwnership(address(timelock));
+        emit TimelockControllerSet(address(timelock));
     }
 
     /// @notice Exempt or include an account from transfer fees
@@ -142,26 +208,41 @@ contract TrezaToken is ERC20, Ownable {
     /// @dev Automatically updates fee exemptions for old and new wallets
     /// @param new1 New first treasury wallet
     /// @param new2 New second treasury wallet
-    function setFeeWallets(address new1, address new2) external onlyOwner {
-        require(new1 != address(0) && new2 != address(0), "Treza: zero address");
+    /// @param new3 New third treasury wallet
+    function setFeeWallets(address new1, address new2, address new3) external onlyOwner {
+        require(
+            new1 != address(0) && new2 != address(0) && new3 != address(0),
+            "Treza: zero address"
+        );
+        require(
+            new1 != new2 && new1 != new3 && new2 != new3,
+            "Treza: treasury wallets must be unique"
+        );
+        
         address old1 = treasuryWallet1;
         address old2 = treasuryWallet2;
+        address old3 = treasuryWallet3;
 
         // Remove exemptions for old wallets
         isFeeExempt[old1] = false;
         isFeeExempt[old2] = false;
+        isFeeExempt[old3] = false;
         emit FeeExemptionUpdated(old1, false);
         emit FeeExemptionUpdated(old2, false);
+        emit FeeExemptionUpdated(old3, false);
 
         // Assign new wallets and exempt them
         treasuryWallet1 = new1;
         treasuryWallet2 = new2;
+        treasuryWallet3 = new3;
         isFeeExempt[new1] = true;
         isFeeExempt[new2] = true;
+        isFeeExempt[new3] = true;
         emit FeeExemptionUpdated(new1, true);
         emit FeeExemptionUpdated(new2, true);
+        emit FeeExemptionUpdated(new3, true);
 
-        emit FeeWalletsUpdated(old1, old2, new1, new2);
+        emit FeeWalletsUpdated(old1, old2, old3, new1, new2, new3);
     }
 
     /// @notice Returns the current transfer fee percentage
@@ -191,16 +272,27 @@ contract TrezaToken is ERC20, Ownable {
         }
 
         uint256 pct = getCurrentFee();
+        if (pct == 0) {
+            super._transfer(sender, recipient, amount);
+            return;
+        }
+
         uint256 fee = (amount * pct) / 100;
         uint256 net = amount - fee;
 
-        if (fee > 0) {
-            uint256 half  = fee / 2;
-            uint256 other = fee - half;
-            super._transfer(sender, treasuryWallet1, half);
-            super._transfer(sender, treasuryWallet2, other);
-        }
+        _distributeFees(sender, fee);
         super._transfer(sender, recipient, net);
+    }
+
+    /// @dev Distributes fees to treasury wallets
+    function _distributeFees(address sender, uint256 fee) private {
+        uint256 fee1 = (fee * FEE1_PCT) / FEE_SPLIT_TOTAL;
+        uint256 fee2 = (fee * FEE2_PCT) / FEE_SPLIT_TOTAL;
+        uint256 fee3 = fee - fee1 - fee2; // Ensure all fee is distributed
+
+        super._transfer(sender, treasuryWallet1, fee1);
+        super._transfer(sender, treasuryWallet2, fee2);
+        super._transfer(sender, treasuryWallet3, fee3);
     }
 
     /// @notice Transfer tokens, applying dynamic fees
@@ -282,16 +374,16 @@ contract TokenVesting {
         uint256 _duration
     ) {
         require(
-            address(_token)      != address(0) &&
-            _beneficiary         != address(0) &&
+            address(_token) != address(0) &&
+            _beneficiary != address(0) &&
             _cliffDuration <= _duration,
             "Vesting: invalid params"
         );
-        token       = _token;
+        token = _token;
         beneficiary = _beneficiary;
-        start       = _start;
-        cliff       = _start + _cliffDuration;
-        duration    = _duration;
+        start = _start;
+        cliff = _start + _cliffDuration;
+        duration = _duration;
     }
 
     /// @notice Release vested tokens to the beneficiary without fees
@@ -322,4 +414,3 @@ contract TokenVesting {
         }
     }
 }
-
