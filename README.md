@@ -1,52 +1,100 @@
-# 🪙 Treza Token (TREZA)
+# Treza Token (TREZA)
 
 ## Overview
 
-Treza Token is an ERC20-compliant cryptocurrency designed with dynamic transfer fees, structured initial token allocations, and robust vesting and timelock mechanisms. This smart contract provides a full tokenomics suite with built-in treasury routing, advisor vesting, and liquidity lock capabilities, all managed through secure and configurable parameters.
+Treza Token is an ERC20-compliant cryptocurrency designed with dynamic transfer fees, structured initial token allocations, and robust vesting and timelock mechanisms. This smart contract provides a full tokenomics suite with built-in three-treasury routing, advisor vesting, decentralized governance, and liquidity lock capabilities — all managed through secure and configurable parameters.
 
 ---
 
-## Key Features
+## 🔑 Key Features
 
 ### 📊 Fixed Supply and Allocations
-The total token supply is fixed at 100 million TREZA. Upon deployment, the contract allocates:
-- 40% to community incentives,
-- 25% to ecosystem and grants,
-- 20% to the team,
-- 15% to advisors, with vesting.
 
-Advisors receive their allocation through an integrated linear vesting contract with a configurable cliff and full vesting duration.
+The total token supply is fixed at **100 million TREZA**. Upon deployment, the contract allocates:
+
+- **40%** to community incentives  
+- **25%** to ecosystem and grants  
+- **20%** to the team  
+- **15%** to advisors (via vesting)
+
+> Advisor tokens are released through an integrated linear vesting contract with a configurable cliff and total vesting duration.
 
 ---
 
 ### 💸 Dynamic Transfer Fees
-Treza implements a time-based fee model:
-- Initially, a 4% fee is applied to all transfers.
-- After a specified period, the fee reduces to 2%.
-- Eventually, the fee drops to 0% permanently.
 
-Fees are automatically split between two treasury wallets and exempt addresses (e.g., treasury, vesting contract, timelock contracts) do not incur fees.
+Treza uses a **time-based fee model**:
+
+- **4%** initial fee on all transfers  
+- Reduces to **2%** after `milestone1`  
+- Drops to **0%** after `milestone2`
+
+**Fee Split Breakdown:**
+
+- **Treasury Wallet 1:** 2.0% (50% of total fee)  
+- **Treasury Wallet 2:** 1.6% (40% of total fee)  
+- **Treasury Wallet 3:** 0.4% (10% of total fee)
+
+> Exempt addresses (e.g., treasury wallets, vesting contracts, timelock contracts) do not incur transfer fees.
 
 ---
 
 ### 🏛️ Treasury and Fee Management
-The owner can:
-- Update the treasury wallets that receive split fees.
-- Exempt or include addresses from the transfer fee mechanism.
-- View the current active fee percentage depending on time since deployment.
+
+The contract owner or governance authority (via TimelockController) can:
+
+- Update **all three treasury wallets**
+- Exempt or include addresses from fee logic
+- View the **current fee percentage** based on time since deployment
+
+**Note:**  
+All three treasury wallets must be **non-zero** and **distinct**.
+
+---
+
+### 🏛️ Decentralized Governance
+
+Treza integrates with **OpenZeppelin’s TimelockController**:
+
+- TimelockController is **deployed automatically**
+- Contract **ownership is transferred** to the TimelockController
+- Governance actions are **queued and delayed** based on configuration
+- Requires **proposer** and **executor** roles
+- Enables full **on-chain decentralized control**
 
 ---
 
 ### ⏳ Vesting and Timelocks
-The advisor allocation is subject to linear vesting with a configurable cliff, ensuring long-term alignment. Additionally, the contract provides the ability to deploy LP token timelocks via OpenZeppelin's `TokenTimelock`, which can be used to lock liquidity for a specified duration and exempt those contracts from transfer fees.
+
+- **Advisor Allocation:** Released linearly with a **configurable cliff**
+- **Liquidity Locking:** LP tokens can be locked using OpenZeppelin’s `TokenTimelock`
+  - Locked contracts are exempt from transfer fees
 
 ---
 
-## 🔒 Security and Best Practices
-- Built on top of OpenZeppelin’s audited libraries.
-- Uses `SafeERC20` to prevent unsafe token transfers.
-- Protects against zero-address errors in all critical functions.
-- Provides event logs for changes to fee exemptions and treasury addresses.
+### 🔒 Security and Best Practices
+
+- Built on **OpenZeppelin’s audited libraries**
+- Uses **SafeERC20** for safe token transfers
+- Prevents **zero address** errors on all sensitive functions
+- Validates that **treasury addresses are unique**
+- Emits logs for all **fee exemption** and **wallet updates**
+- Stack-optimized constructor for compatibility with Remix and hardhat
+- Modular design for readability and **gas efficiency**
 
 ---
+
+## ⚙️ Contract Architecture
+
+### Core Components
+
+- **TrezaToken:** Main ERC20 contract with dynamic fees  
+- **TokenVesting:** Linear vesting logic for advisors  
+- **TimelockController:** On-chain governance delay mechanism  
+- **TokenTimelock:** LP token locking mechanism  
+
+---
+
+
+
 
