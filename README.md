@@ -128,6 +128,13 @@ The contract constructor requires the following inputs:
   - Cliff duration  
   - Total vesting duration
 
+  - 🏛️ **Governance parameters**:  
+  - Array of proposer addresses  
+  - Array of executor addresses  
+  - Timelock delay (in seconds)
+
+---
+
 
 
 
