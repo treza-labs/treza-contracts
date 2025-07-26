@@ -95,6 +95,21 @@ Treza integrates with **OpenZeppelin’s TimelockController**:
 
 ---
 
+## 🔁 Fee Distribution Flow
+
+1. Transfer is triggered between two non-exempt addresses  
+2. Contract calculates the **current fee** (4%, 2%, or 0%)  
+3. Fee is split as:
+   - 50% → Treasury Wallet 1  
+   - 40% → Treasury Wallet 2  
+   - 10% → Treasury Wallet 3  
+4. **Remaining amount** is transferred to the recipient  
+5. If any party is **fee-exempt**, the full amount is transferred with no fee deduction
+
+   ---
+
+
+
 
 
 
