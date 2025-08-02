@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/governance/TimelockController.sol";
 
 /// @title TrezaToken with Anti-Sniping Protection
-/// @author Brandon Torres and Treza Labs
+/// @author Treza Labs
 /// @notice ERC20 token with manual fees, anti-sniping whitelist, and launch controls
 /// @dev Enhanced with comprehensive anti-bot protection for fair launches
 contract TrezaToken is ERC20, Ownable {
