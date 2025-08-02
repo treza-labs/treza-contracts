@@ -213,7 +213,7 @@ antiBotBlocksRemaining = (tradingEnabledBlock + antiBotBlockCount) - currentBloc
 
 ## 🚀 **Ready to Launch?**
 
-Your TREZA token now has military-grade anti-sniping protection! 🛡️
+Your TREZA token now has comprehensive anti-sniping protection! 🛡️
 
 **Next Steps:**
 1. Deploy the enhanced contract

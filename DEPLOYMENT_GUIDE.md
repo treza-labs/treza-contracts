@@ -28,19 +28,18 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ## 🛡️ Anti-Sniping Protection
 
-Your TREZA token deploys with **military-grade anti-sniping protection**:
+Your TREZA token deploys with **comprehensive anti-sniping protection**:
 
 ### Initial State (SAFE DEPLOYMENT)
 - ❌ **Trading DISABLED** (must be enabled manually)
 - ✅ **Whitelist-only mode** (only approved addresses can trade)
-- ✅ **Transaction limits** (0.1% of supply max)
-- ✅ **Wallet limits** (0.2% of supply max)
+
 - ✅ **Transfer cooldown** (1 second between transactions)
 - ✅ **All allocation wallets pre-whitelisted**
 
 ### Protection Features
 - 🛡️ **Whitelist-only trading periods**
-- 🐋 **Anti-whale transaction limits** 
+ 
 - ⏰ **Transfer cooldown protection**
 - 🚫 **Emergency blacklist capability**
 - 🤖 **3-block anti-bot protection** after trading enabled
@@ -225,8 +224,8 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ## 🎊 Congratulations!
 
-Your TREZA token now has **military-grade anti-sniping protection** and is ready for a **fair, bot-proof launch**! 
+Your TREZA token now has **comprehensive anti-sniping protection** and is ready for a **fair launch**! 
 
-The most sophisticated DeFi projects would be proud of this setup. 🌟
+Your token is ready for a secure deployment and launch. 🌟
 
 **Happy deploying!** 🚀
