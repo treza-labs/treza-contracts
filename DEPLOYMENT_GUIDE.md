@@ -109,9 +109,6 @@ You need **8 different wallet addresses**:
 - `setWhitelist([addresses], true)` - Add to whitelist
 - `setWhitelist([addresses], false)` - Remove from whitelist
 
-### Anti-Whale Protection
-- `setMaxLimits(maxTx, maxWallet)` - Set transaction/wallet limits
-- `setMaxLimitsActive(true/false)` - Enable/disable limits
 
 ### Emergency Controls
 - `setBlacklist([addresses], true)` - Emergency blacklist

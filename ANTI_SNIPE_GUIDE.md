@@ -18,24 +18,19 @@ Your enhanced TREZA token includes comprehensive anti-sniping protection to ensu
 - **Purpose:** Full control over when trading begins
 - **Control:** `setTradingEnabled(bool)` (owner only)
 
-### 3. **Anti-Whale Limits**
-- **Max Transaction:** 0.1% of total supply (100,000 TREZA)
-- **Max Wallet:** 0.2% of total supply (200,000 TREZA)
-- **Default state:** ENABLED during launch
-- **Purpose:** Prevent large purchases that manipulate price
-- **Control:** `setMaxLimits(uint256, uint256)` and `setMaxLimitsActive(bool)`
 
-### 4. **Transfer Cooldown**
+
+### 3. **Transfer Cooldown**
 - **What it does:** Minimum 1 second between transactions per address
 - **Purpose:** Prevent spam/rapid bot trading
 - **Control:** `setAntiSniperConfig(uint256 blocks, uint256 cooldown)`
 
-### 5. **Anti-Bot Block Protection**
+### 4. **Anti-Bot Block Protection**
 - **What it does:** Extra protection for 3 blocks after trading enabled
 - **Purpose:** Prevent immediate bot sniping when trading starts
 - **Only whitelisted addresses can trade during this period**
 
-### 6. **Emergency Blacklist**
+### 5. **Emergency Blacklist**
 - **What it does:** Manually block suspicious addresses
 - **Purpose:** Emergency response to detected bots/bad actors
 - **Control:** `setBlacklist(address[], bool)` (owner only)
@@ -67,8 +62,7 @@ setTradingEnabled(true);
 // 6. Wait for community whitelist trading period
 // Monitor for any suspicious activity
 
-// 7. Optional: Adjust limits if needed
-setMaxLimits(newMaxTx, newMaxWallet);
+
 ```
 
 ### **Phase 4: Public Launch** 🌍
@@ -76,8 +70,8 @@ setMaxLimits(newMaxTx, newMaxWallet);
 // 8. Disable whitelist mode (opens to public)
 setWhitelistMode(false);
 
-// 9. Optionally disable limits after stabilization
-setMaxLimitsActive(false);
+// 7. Monitor and adjust as needed
+
 ```
 
 ## 🛠️ **Management Functions**
@@ -102,11 +96,8 @@ setTradingEnabled(true/false);
 // Enable/disable whitelist-only mode
 setWhitelistMode(true/false);
 
-// Set transaction and wallet limits
-setMaxLimits(maxTxAmount, maxWalletAmount);
 
-// Enable/disable limits
-setMaxLimitsActive(true/false);
+
 ```
 
 ### **Emergency Functions**
@@ -230,4 +221,3 @@ Your TREZA token now has military-grade anti-sniping protection! 🛡️
 3. Execute the launch sequence
 4. Monitor and manage as needed
 
-**Your community will thank you for the fair launch!** 🎉
