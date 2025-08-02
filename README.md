@@ -1,150 +1,263 @@
-# Treza Token (TREZA)
+# TREZA Token
 
 ## Overview
 
-Treza Token is an ERC20-compliant cryptocurrency designed with manual transfer fees, structured initial token allocations, and timelock mechanisms. This smart contract provides a full tokenomics suite with built-in two-treasury routing, decentralized governance, and liquidity lock capabilities — all managed through secure and configurable parameters.
+TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collection, and launch management capabilities. The contract includes whitelist controls, transaction limits, and governance features designed for fair token launches.
 
 ---
 
-## 🔑 Key Features
+## 🔥 Key Features
 
-### 📊 Fixed Supply and Allocations
+### 🛡️ Anti-Sniping Protection
 
-The total token supply is fixed at **100 million TREZA**. Upon deployment, the contract allocates:
+**Bot Protection Features:**
+- **Whitelist-only trading periods** - Only approved addresses can trade initially
+- **Anti-whale transaction limits** - Maximum 0.1% of supply per transaction
+- **Anti-whale wallet limits** - Maximum 0.2% of supply per wallet
+- **Transfer cooldown protection** - 1-second minimum between transactions
+- **3-block anti-bot protection** - Enhanced protection after trading enabled
+- **Emergency blacklist capability** - Block malicious addresses instantly
+- **Complete launch control** - Master trading enable/disable
 
-- **35%** to initial liquidity  
-- **20%** to the team  
-- **20%** to treasury
-- **10%** to partnerships & grants  
-- **5%** to R&D  
-- **10%** to marketing & operations
+### 💰 Tokenomics
 
----
+**Fixed Supply & Allocations:**
+- **Total Supply:** 100 million TREZA tokens (fixed)
+- **Initial Liquidity:** 35% (35M TREZA)
+- **Team:** 20% (20M TREZA)  
+- **Treasury:** 20% (20M TREZA)
+- **Partnerships & Grants:** 10% (10M TREZA)
+- **R&D:** 5% (5M TREZA)
+- **Marketing & Operations:** 10% (10M TREZA)
 
-### 💸 Manual Transfer Fees
-
-Treza uses a **manually adjustable fee model**:
-
-- **4%** initial fee on all transfers  
-- Can be adjusted manually by governance/owner (0-10% range)
-- Provides flexibility for fee optimization based on market conditions
-
-**Fee Split Breakdown:**
-
-- **Treasury Wallet 1:** 50% of total fee  
-- **Treasury Wallet 2:** 50% of total fee
-
-> Exempt addresses (e.g., treasury wallets, timelock contracts) do not incur transfer fees.
-
----
-
-### 🏛️ Treasury and Fee Management
-
-The contract owner or governance authority (via TimelockController) can:
-
-- Update **both treasury wallets**
-- Exempt or include addresses from fee logic
-- **Manually adjust the transfer fee percentage** (0-10% range)
-- View the **current fee percentage**
-
-**Note:**  
-Both treasury wallets must be **non-zero** and **distinct**.
-
----
+**Dynamic Fee System:**
+- **Initial Fee:** 4% on all transfers
+- **Adjustable Range:** 0-10% (governance controlled)
+- **Dual Treasury:** 50/50 split between two treasury wallets
+- **Fee Exemptions:** Treasury wallets and whitelisted addresses exempt
 
 ### 🏛️ Decentralized Governance
 
-Treza integrates with **OpenZeppelin’s TimelockController**:
-
-- TimelockController is **deployed automatically**
-- Contract **ownership is transferred** to the TimelockController
-- Governance actions are **queued and delayed** based on configuration
-- Requires **proposer** and **executor** roles
-- Enables full **on-chain decentralized control**
-
----
-
-### ⏳ Liquidity Locking
-
-- **Liquidity Locking:** LP tokens can be locked using OpenZeppelin's `TokenTimelock`
-  - Locked contracts are exempt from transfer fees
+**TimelockController Integration:**
+- **Automatic deployment** of OpenZeppelin TimelockController
+- **Ownership transfer** to timelock for decentralized control
+- **Proposal and execution** roles for governance actions
+- **Time delays** for all critical changes
+- **On-chain governance** with full transparency
 
 ---
 
-### 🔒 Security and Best Practices
+## 🚀 Launch Management System
 
-- Built on **OpenZeppelin’s audited libraries**
-- Uses **SafeERC20** for safe token transfers
-- Prevents **zero address** errors on all sensitive functions
-- Validates that **treasury addresses are unique**
-- Emits logs for all **fee exemption** and **wallet updates**
-- Stack-optimized constructor for compatibility with Remix and hardhat
-- Modular design for readability and **gas efficiency**
+### Phase 1: Pre-Launch (Safe Deployment)
+- ❌ **Trading disabled** by default
+- ✅ **Whitelist-only mode** active
+- ✅ **Transaction limits** enforced
+- ✅ **All allocation wallets pre-whitelisted**
 
----
+### Phase 2: Controlled Launch
+- 📝 **Add trusted addresses** to whitelist (DEX, team, early supporters)
+- 🏊 **Add initial liquidity** (only whitelisted addresses can participate)
+- 🚀 **Enable trading** when ready (anti-bot protection activates)
 
-## ⚙️ Contract Architecture
-
-### Core Components
-
-- **TrezaToken:** Main ERC20 contract with manual fees  
-- **TimelockController:** On-chain governance delay mechanism  
-- **TokenTimelock:** LP token locking mechanism  
+### Phase 3: Public Launch
+- 🌍 **Disable whitelist mode** for public access
+- 📊 **Monitor and adjust** as needed
+- 🎯 **Remove limits** after stabilization
 
 ---
 
-## 🔁 Fee Distribution Flow
+## 🔧 Management Functions
 
-1. Transfer is triggered between two non-exempt addresses  
-2. Contract uses the **manually set fee percentage** (0-10%)  
-3. Fee is split as:
-   - 50% → Treasury Wallet 1  
-   - 50% → Treasury Wallet 2  
-4. **Remaining amount** is transferred to the recipient  
-5. If any party is **fee-exempt**, the full amount is transferred with no fee deduction
+### Launch Control
+```solidity
+setTradingEnabled(bool)              // Master trading switch
+setWhitelistMode(bool)               // Whitelist-only mode
+setMaxLimitsActive(bool)             // Enable/disable limits
+```
 
-   ---
+### Whitelist Management
+```solidity
+setWhitelist(address[], bool)        // Manage whitelist
+isWhitelisted(address)               // Check whitelist status
+```
 
-## 🚀 Deployment Parameters
+### Anti-Whale Protection
+```solidity
+setMaxLimits(uint256, uint256)       // Set transaction/wallet limits
+maxTransactionAmount()               // View current max transaction
+maxWalletAmount()                    // View current max wallet
+```
 
-The contract constructor requires the following inputs:
+### Emergency Controls
+```solidity
+setBlacklist(address[], bool)        // Emergency blacklist
+setAntiSniperConfig(uint256, uint256) // Adjust protection parameters
+```
 
-- 🧾 **Initial allocation wallet addresses**:  
-  - Initial Liquidity  
-  - Team  
-  - Treasury
-  - Partnerships & Grants  
-  - R&D  
-  - Marketing & Operations
- 
-  - 💰 **Two unique treasury wallet addresses** for dynamic fee collection
+### Fee Management
+```solidity
+setFeePercentage(uint256)            // Adjust fees (0-10%)
+setFeeWallets(address, address)      // Update treasury wallets
+setFeeExemption(address, bool)       // Manage fee exemptions
+getCurrentFee()                      // View current fee
+```
 
-- No time-based fee parameters required (manual adjustment system)
-
-
-
-  - 🏛️ **Governance parameters**:  
-  - Array of proposer addresses  
-  - Array of executor addresses  
-  - Timelock delay (in seconds)
+### Status Checking
+```solidity
+getLaunchStatus()                    // Get all launch parameters
+canTrade(address)                    // Check if address can trade
+```
 
 ---
 
-## ⛽ Gas Optimization
+## 🎯 Anti-Bot Protection Details
 
-The Treza contract includes several gas-saving techniques:
+### Whitelist System
+- **Pre-approved trading** during launch phase
+- **Prevents bot sniping** at token launch
+- **Controlled access** for fair distribution
 
-- 🧱 **Struct-based parameter passing** to avoid stack depth issues during deployment
-- ♻️ **Modular internal functions** for code reuse and maintainability
-- 🛑 **Early returns** in transfer logic when fees are not applicable
-- ⚖️ **Optimized fee splitting** with clean remainder handling (to prevent rounding errors)
+### Transaction Limits
+- **Max transaction:** 0.1% of total supply (100,000 TREZA)
+- **Max wallet:** 0.2% of total supply (200,000 TREZA)  
+- **Prevents whale manipulation** during early trading
 
-  ---
+### Cooldown Protection
+- **1-second minimum** between transactions per address
+- **Prevents spam trading** and bot attacks
+- **Whitelisted addresses exempt** from cooldown
 
+### Anti-Bot Blocks
+- **3-block protection** after trading enabled
+- **Additional protection** during initial trading activation
+- **Only whitelisted addresses** can trade during this period
 
+### Emergency Controls
+- **Instant blacklisting** of malicious addresses
+- **Configurable protection parameters**
+- **Emergency pause capabilities**
 
+---
 
+## 💸 Fee Distribution Flow
 
+1. **Transfer initiated** between addresses
+2. **Check exemptions** (treasury wallets, whitelisted addresses)
+3. **Apply current fee** (4% initial, 0-10% range)
+4. **Split fees 50/50** between treasury wallets
+5. **Transfer remaining** amount to recipient
 
+**Fee Exemptions:**
+- Treasury wallets (automatic)
+- Whitelisted addresses (configurable)
+- Contract-to-contract transfers (when appropriate)
 
+---
 
+## 🔒 Security & Best Practices
+
+### Built-in Security
+- **OpenZeppelin libraries** (audited and tested)
+- **SafeERC20** for secure token transfers
+- **Address validation** prevents zero-address errors
+- **Unique treasury validation** ensures distinct wallets
+- **Comprehensive event logging** for transparency
+
+### Gas Optimization
+- **Struct-based parameters** avoid stack depth issues
+- **Modular internal functions** for code reuse
+- **Early returns** when fees don't apply
+- **Optimized fee calculations** with proper remainder handling
+
+### Governance Security
+- **TimelockController** prevents rushed decisions
+- **Multi-signature capable** through proposer/executor roles
+- **Time delays** for all critical changes
+- **Transparent on-chain execution**
+
+---
+
+## 📊 Technical Specifications
+
+### Contract Architecture
+- **TrezaToken:** Main ERC20 contract with anti-sniping features
+- **TimelockController:** Governance and ownership management
+- **Modular design** for maintainability and upgrades
+
+### Default Configuration
+- **Trading:** Disabled (manual activation required)
+- **Whitelist Mode:** Enabled (public trading disabled)
+- **Max Transaction:** 100,000 TREZA (0.1% of supply)
+- **Max Wallet:** 200,000 TREZA (0.2% of supply)
+- **Transfer Cooldown:** 1 second
+- **Anti-Bot Protection:** 3 blocks
+- **Initial Fee:** 4%
+
+---
+
+## 🚀 Deployment
+
+### Quick Deploy
+```bash
+# 1. Update addresses in scripts/deploy.ts
+# 2. Deploy with anti-sniping protection
+npx hardhat run scripts/deploy.ts --network sepolia
+
+# 3. Verify on Etherscan  
+npx hardhat run scripts/verify.ts --network sepolia
+```
+
+### Requirements
+- **8 unique wallet addresses** for allocations and governance
+- **Sepolia ETH** for deployment gas
+- **RPC provider** (Alchemy, Infura, QuickNode)
+- **Etherscan API key** for verification
+
+---
+
+## 📚 Documentation
+
+- **`DEPLOYMENT_GUIDE.md`** - Complete deployment instructions
+- **`ANTI_SNIPE_GUIDE.md`** - Detailed anti-sniping management guide
+- **Smart Contract Comments** - Inline documentation in Solidity code
+
+---
+
+## Key Differences
+
+### Compared to Standard ERC20 Tokens
+- ❌ **Standard:** Vulnerable to bot sniping
+- ✅ **TREZA:** Anti-sniping protection included
+
+### Compared to Basic Fee Tokens  
+- ❌ **Basic:** Simple percentage fees
+- ✅ **TREZA:** Dynamic fees + dual treasury + governance
+
+### Compared to Manual Launch Tokens
+- ❌ **Manual:** Prone to human error and rushed launches
+- ✅ **TREZA:** Systematic launch management with safety controls
+
+---
+
+## Summary
+
+TREZA Token provides:
+- 🛡️ **Comprehensive bot protection**
+- 💰 **Flexible tokenomics**
+- 🚀 **Controlled launch capabilities** 
+- 🏛️ **Decentralized governance**
+- 🔒 **Security features**
+
+Ready for deployment and launch.
+
+---
+
+## 📞 Documentation
+
+- **Hardhat Documentation:** https://hardhat.org/docs
+- **OpenZeppelin Contracts:** https://docs.openzeppelin.com
+- **Etherscan:** https://sepolia.etherscan.io
+- **Treza Labs** https://docs.trezalabs.com
+
+**Built with ❤️ by Treza Labs**
