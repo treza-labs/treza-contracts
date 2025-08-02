@@ -100,6 +100,12 @@ describe("TrezaToken", function () {
   });
 
   describe("Transfer Fees", function () {
+    beforeEach(async function () {
+      // Enable trading and disable whitelist mode for testing fees
+      await trezaToken.connect(timelock).setTradingEnabled(true);
+      await trezaToken.connect(timelock).setWhitelistMode(false);
+    });
+
     it("Should charge 4% fee on transfers between non-exempt addresses", async function () {
       const transferAmount = ethers.parseEther("1000");
       const expectedFee = transferAmount * 4n / 100n; // 4%

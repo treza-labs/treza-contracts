@@ -52,7 +52,7 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 ### Phase 1: Pre-Launch (Safe Deployment)
 - ❌ **Trading disabled** by default
 - ✅ **Whitelist-only mode** active
-- ✅ **Transaction limits** enforced
+
 - ✅ **All allocation wallets pre-whitelisted**
 
 ### Phase 2: Controlled Launch
@@ -63,7 +63,7 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 ### Phase 3: Public Launch
 - 🌍 **Disable whitelist mode** for public access
 - 📊 **Monitor and adjust** as needed
-- 🎯 **Remove limits** after stabilization
+
 
 ---
 
@@ -73,7 +73,7 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 ```solidity
 setTradingEnabled(bool)              // Master trading switch
 setWhitelistMode(bool)               // Whitelist-only mode
-setMaxLimitsActive(bool)             // Enable/disable limits
+
 ```
 
 ### Whitelist Management
@@ -82,12 +82,7 @@ setWhitelist(address[], bool)        // Manage whitelist
 isWhitelisted(address)               // Check whitelist status
 ```
 
-### Anti-Whale Protection
-```solidity
-setMaxLimits(uint256, uint256)       // Set transaction/wallet limits
-maxTransactionAmount()               // View current max transaction
-maxWalletAmount()                    // View current max wallet
-```
+
 
 ### Emergency Controls
 ```solidity

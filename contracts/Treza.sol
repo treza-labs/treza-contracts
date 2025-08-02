@@ -60,14 +60,7 @@ contract TrezaToken is ERC20, Ownable {
     /// @notice Mapping of whitelisted addresses during launch
     mapping(address => bool) public isWhitelisted;
 
-    /// @notice Maximum transaction amount during early launch (anti-whale)
-    uint256 public maxTransactionAmount;
 
-    /// @notice Maximum wallet balance during early launch (anti-whale)
-    uint256 public maxWalletAmount;
-
-    /// @notice Whether max transaction limits are active
-    bool public maxLimitsActive = true;
 
     /// @notice Block number when trading was enabled
     uint256 public tradingEnabledBlock;
@@ -122,8 +115,7 @@ contract TrezaToken is ERC20, Ownable {
     event WhitelistModeToggled(bool enabled);
     event TradingEnabledToggled(bool enabled);
     event WhitelistUpdated(address indexed account, bool isWhitelisted);
-    event MaxLimitsUpdated(uint256 maxTransaction, uint256 maxWallet);
-    event MaxLimitsToggled(bool active);
+
     event AddressBlacklisted(address indexed account, bool isBlacklisted);
     event AntiSniperConfigUpdated(uint256 blocksCount, uint256 cooldownSeconds);
 
@@ -144,9 +136,7 @@ contract TrezaToken is ERC20, Ownable {
         // Initialize fee percentage to 4%
         currentFeePercentage = 4;
         
-        // Initialize anti-whale limits (can be adjusted)
-        maxTransactionAmount = (TOTAL_SUPPLY * 1) / 1000; // 0.1% of total supply
-        maxWalletAmount = (TOTAL_SUPPLY * 2) / 1000;      // 0.2% of total supply
+
         
         _mintInitialAllocations(params);
         _setupTreasuryWallets(params.treasury1, params.treasury2);
@@ -268,24 +258,7 @@ contract TrezaToken is ERC20, Ownable {
         }
     }
 
-    /// @notice Set maximum transaction and wallet limits
-    /// @param _maxTransaction Maximum tokens per transaction
-    /// @param _maxWallet Maximum tokens per wallet
-    function setMaxLimits(uint256 _maxTransaction, uint256 _maxWallet) external onlyOwner {
-        require(_maxTransaction >= (TOTAL_SUPPLY / 10000), "Treza: max transaction too low"); // Min 0.01%
-        require(_maxWallet >= (TOTAL_SUPPLY / 10000), "Treza: max wallet too low"); // Min 0.01%
-        
-        maxTransactionAmount = _maxTransaction;
-        maxWalletAmount = _maxWallet;
-        emit MaxLimitsUpdated(_maxTransaction, _maxWallet);
-    }
 
-    /// @notice Enable/disable max transaction limits
-    /// @param _active True to enforce limits, false to disable
-    function setMaxLimitsActive(bool _active) external onlyOwner {
-        maxLimitsActive = _active;
-        emit MaxLimitsToggled(_active);
-    }
 
     /// @notice Blacklist suspicious addresses (emergency function)
     /// @param accounts Array of addresses to blacklist/unblacklist
@@ -407,20 +380,9 @@ contract TrezaToken is ERC20, Ownable {
             lastTransferTime[sender] = block.timestamp;
         }
 
-        // 6. Max transaction limits (except for whitelisted addresses)
-        if (maxLimitsActive && !isWhitelisted[sender] && !isWhitelisted[recipient]) {
-            require(amount <= maxTransactionAmount, "Treza: transaction amount too high");
-            
-            // Max wallet check (only for recipients, not for selling)
-            if (recipient != address(0)) {
-                require(
-                    balanceOf(recipient) + amount <= maxWalletAmount,
-                    "Treza: wallet amount too high"
-                );
-            }
-        }
 
-        // 7. Apply normal fee logic
+
+        // 6. Apply normal fee logic
         _transferWithPossibleFee(sender, recipient, amount);
     }
 
@@ -505,9 +467,6 @@ contract TrezaToken is ERC20, Ownable {
     function getLaunchStatus() external view returns (
         bool _tradingEnabled,
         bool _whitelistMode,
-        bool _maxLimitsActive,
-        uint256 _maxTransaction,
-        uint256 _maxWallet,
         uint256 _antiBotBlocksRemaining
     ) {
         uint256 antiBotRemaining = 0;
@@ -518,9 +477,6 @@ contract TrezaToken is ERC20, Ownable {
         return (
             tradingEnabled,
             whitelistMode,
-            maxLimitsActive,
-            maxTransactionAmount,
-            maxWalletAmount,
             antiBotRemaining
         );
     }
