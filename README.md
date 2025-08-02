@@ -2,7 +2,7 @@
 
 ## Overview
 
-TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collection, and launch management capabilities. The contract includes whitelist controls, transaction limits, and governance features designed for fair token launches.
+TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collection, and launch management capabilities. The contract includes whitelist controls and governance features designed for fair token launches.
 
 ---
 
@@ -12,8 +12,7 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 
 **Bot Protection Features:**
 - **Whitelist-only trading periods** - Only approved addresses can trade initially
-- **Anti-whale transaction limits** - Maximum 0.1% of supply per transaction
-- **Anti-whale wallet limits** - Maximum 0.2% of supply per wallet
+
 - **Transfer cooldown protection** - 1-second minimum between transactions
 - **3-block anti-bot protection** - Enhanced protection after trading enabled
 - **Emergency blacklist capability** - Block malicious addresses instantly
@@ -113,10 +112,7 @@ canTrade(address)                    // Check if address can trade
 - **Prevents bot sniping** at token launch
 - **Controlled access** for fair distribution
 
-### Transaction Limits
-- **Max transaction:** 0.1% of total supply (100,000 TREZA)
-- **Max wallet:** 0.2% of total supply (200,000 TREZA)  
-- **Prevents whale manipulation** during early trading
+
 
 ### Cooldown Protection
 - **1-second minimum** between transactions per address
