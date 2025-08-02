@@ -1,0 +1,26 @@
+{
+  "name": "treza-contracts",
+  "version": "1.0.0",
+  "description": "## Overview",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:treza": "hardhat test test/TrezaToken.test.ts",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "test:deployed": "hardhat run scripts/test-deployed.ts --network sepolia",
+    "verify": "hardhat verify --network sepolia",
+    "node": "hardhat node"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "dotenv": "^17.2.1",
+    "hardhat": "^2.26.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
+  }
+}
