@@ -250,5 +250,3 @@ Ready for deployment and launch.
 - **OpenZeppelin Contracts:** https://docs.openzeppelin.com
 - **Etherscan:** https://sepolia.etherscan.io
 - **Treza Labs** https://docs.trezalabs.com
-
-**Built with ❤️ by Treza Labs**
