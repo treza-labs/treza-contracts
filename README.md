@@ -10,9 +10,15 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 
 ### 🛡️ Anti-Sniping Protection
 
-**Bot Protection Features:**
-- **Whitelist-only trading periods** - Only approved addresses can trade initially
+**🚀 NEW: Time-Based Anti-Sniper Launch Mechanism:**
+- **Phase 1 (0-1 min):** 40% fee, 0.10% max wallet (100K TREZA)
+- **Phase 2 (1-5 min):** 30% fee, 0.15% max wallet (150K TREZA)
+- **Phase 3 (5-8 min):** 20% fee, 0.20% max wallet (200K TREZA)
+- **Phase 4 (8-15 min):** 10% fee, 0.30% max wallet (300K TREZA)
+- **After 15 min:** Normal 5% fee, no max wallet limit
 
+**Traditional Bot Protection Features:**
+- **Whitelist-only trading periods** - Only approved addresses can trade initially
 - **Transfer cooldown protection** - 1-second minimum between transactions
 - **3-block anti-bot protection** - Enhanced protection after trading enabled
 - **Emergency blacklist capability** - Block malicious addresses instantly
@@ -30,7 +36,8 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 - **Marketing & Operations:** 10% (10M TREZA)
 
 **Dynamic Fee System:**
-- **Initial Fee:** 4% on all transfers
+- **Normal Fee:** 5% on all transfers (after anti-sniper period)
+- **Time-Based Fees:** 40% → 30% → 20% → 10% → 5% (first 15 minutes)
 - **Adjustable Range:** 0-10% (governance controlled)
 - **Dual Treasury:** 50/50 split between two treasury wallets
 - **Fee Exemptions:** Treasury wallets and whitelisted addresses exempt
@@ -91,10 +98,19 @@ setAntiSniperConfig(uint256, uint256) // Adjust protection parameters
 
 ### Fee Management
 ```solidity
-setFeePercentage(uint256)            // Adjust fees (0-10%)
+setFeePercentage(uint256)            // Adjust manual fees (0-10%)
 setFeeWallets(address, address)      // Update treasury wallets
 setFeeExemption(address, bool)       // Manage fee exemptions
-getCurrentFee()                      // View current fee
+getCurrentFee()                      // View current fee (time-based or manual)
+```
+
+### 🚀 Time-Based Anti-Sniper Management
+```solidity
+setTimeBasedAntiSniper(bool)         // Enable/disable time-based system
+setAntiSniperPhases(phases)          // Update phase configurations
+getAntiSniperStatus()                // Get current phase, fee, max wallet, time remaining
+getCurrentMaxWallet()                // View current max wallet limit
+getAntiSniperPhase(uint256)          // Get specific phase configuration
 ```
 
 ### Status Checking
@@ -134,14 +150,15 @@ canTrade(address)                    // Check if address can trade
 ## 💸 Fee Distribution Flow
 
 1. **Transfer initiated** between addresses
-2. **Check exemptions** (treasury wallets, whitelisted addresses)
-3. **Apply current fee** (4% initial, 0-10% range)
-4. **Split fees 50/50** between treasury wallets
-5. **Transfer remaining** amount to recipient
+2. **Check exemptions** (treasury wallets, whitelisted addresses)  
+3. **Check max wallet limits** (if time-based anti-sniper enabled)
+4. **Apply current fee** (time-based: 40%→30%→20%→10%→5% OR manual: 0-10% range)
+5. **Split fees 50/50** between treasury wallets
+6. **Transfer remaining** amount to recipient
 
-**Fee Exemptions:**
-- Treasury wallets (automatic)
-- Whitelisted addresses (configurable)
+**Fee Exemptions & Max Wallet Bypasses:**
+- Treasury wallets (automatic exemption from fees and max wallet)
+- Whitelisted addresses (configurable exemption from max wallet)
 - Contract-to-contract transfers (when appropriate)
 
 ---
@@ -179,11 +196,17 @@ canTrade(address)                    // Check if address can trade
 ### Default Configuration
 - **Trading:** Disabled (manual activation required)
 - **Whitelist Mode:** Enabled (public trading disabled)
-- **Max Transaction:** 100,000 TREZA (0.1% of supply)
-- **Max Wallet:** 200,000 TREZA (0.2% of supply)
+- **Time-Based Anti-Sniper:** Enabled (dynamic fees and max wallet)
 - **Transfer Cooldown:** 1 second
 - **Anti-Bot Protection:** 3 blocks
-- **Initial Fee:** 4%
+- **Normal Fee:** 5% (after anti-sniper period)
+
+### 🚀 Time-Based Anti-Sniper Configuration
+- **Phase 1 (0-1 min):** 40% fee, 100,000 TREZA max wallet (0.10%)
+- **Phase 2 (1-5 min):** 30% fee, 150,000 TREZA max wallet (0.15%)
+- **Phase 3 (5-8 min):** 20% fee, 200,000 TREZA max wallet (0.20%)
+- **Phase 4 (8-15 min):** 10% fee, 300,000 TREZA max wallet (0.30%)
+- **Normal (15+ min):** 5% fee, no max wallet limit
 
 ---
 
@@ -219,28 +242,33 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ### Compared to Standard ERC20 Tokens
 - ❌ **Standard:** Vulnerable to bot sniping
-- ✅ **TREZA:** Anti-sniping protection included
+- ✅ **TREZA:** Comprehensive anti-sniping protection with time-based deterrents
 
 ### Compared to Basic Fee Tokens  
 - ❌ **Basic:** Simple percentage fees
-- ✅ **TREZA:** Dynamic fees + dual treasury + governance
+- ✅ **TREZA:** Time-based dynamic fees (40%→5%) + dual treasury + governance
 
 ### Compared to Manual Launch Tokens
 - ❌ **Manual:** Prone to human error and rushed launches
-- ✅ **TREZA:** Systematic launch management with safety controls
+- ✅ **TREZA:** Automated 15-minute anti-sniper system with graduated protection
+
+### Compared to Simple Anti-Bot Tokens
+- ❌ **Simple:** Basic blacklist or cooldown only
+- ✅ **TREZA:** Multi-layered protection: time-based fees + max wallet + whitelist + cooldown + blacklist
 
 ---
 
 ## Summary
 
 TREZA Token provides:
-- 🛡️ **Comprehensive bot protection**
-- 💰 **Flexible tokenomics**
-- 🚀 **Controlled launch capabilities** 
-- 🏛️ **Decentralized governance**
-- 🔒 **Security features**
+- 🛡️ **Most comprehensive bot protection available** with time-based anti-sniper system
+- 💰 **Dynamic tokenomics** with graduated fees (40%→30%→20%→10%→5%)
+- 🚀 **Automated launch protection** across 4 phases over 15 minutes
+- 🏛️ **Decentralized governance** with timelock controller
+- 🔒 **Multi-layered security** features
+- ⚖️ **Fair launch system** that rewards patience and deters manipulation
 
-Ready for deployment and launch.
+Ready for deployment with the most advanced anti-sniping protection in DeFi.
 
 ---
 

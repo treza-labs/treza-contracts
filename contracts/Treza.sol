@@ -65,8 +65,28 @@ contract TrezaToken is ERC20, Ownable {
     /// @notice Block number when trading was enabled
     uint256 public tradingEnabledBlock;
 
+    /// @notice Timestamp when trading was enabled (for time-based anti-sniper)
+    uint256 public tradingEnabledTimestamp;
+
     /// @notice Number of blocks with enhanced anti-bot protection
     uint256 public antiBotBlockCount = 3;
+
+    // =========================================================================
+    // TIME-BASED ANTI-SNIPER MECHANISM
+    // =========================================================================
+
+    /// @notice Whether time-based anti-sniper mechanism is enabled
+    bool public timeBasedAntiSniperEnabled = true;
+
+    /// @notice Time-based fee structure (in seconds from launch)
+    struct TimeFeePhase {
+        uint256 duration;       // Duration in seconds
+        uint256 feePercentage;  // Fee percentage for this phase
+        uint256 maxWalletPct;   // Max wallet as percentage of total supply (in basis points, 10000 = 1%)
+    }
+
+    /// @notice Anti-sniper fee phases
+    TimeFeePhase[4] public antiSniperPhases;
 
     /// @notice Minimum time between transactions for the same address (anti-spam)
     uint256 public transferCooldown = 1; // 1 second
@@ -118,6 +138,8 @@ contract TrezaToken is ERC20, Ownable {
 
     event AddressBlacklisted(address indexed account, bool isBlacklisted);
     event AntiSniperConfigUpdated(uint256 blocksCount, uint256 cooldownSeconds);
+    event TimeBasedAntiSniperToggled(bool enabled);
+    event AntiSniperPhasesUpdated();
 
     /// @param params Struct containing all constructor parameters
     /// @param proposers Array of addresses that can propose timelock operations
@@ -133,14 +155,15 @@ contract TrezaToken is ERC20, Ownable {
         _validateAddresses(params);
         _validateTreasuryWallets(params.treasury1, params.treasury2);
         
-        // Initialize fee percentage to 4%
-        currentFeePercentage = 4;
+        // Initialize fee percentage to 5%
+        currentFeePercentage = 5;
         
 
         
         _mintInitialAllocations(params);
         _setupTreasuryWallets(params.treasury1, params.treasury2);
         _setupInitialWhitelist(params);
+        _setupAntiSniperPhases();
         _setupTimelock(proposers, executors, params.timelockDelay);
     }
 
@@ -215,6 +238,37 @@ contract TrezaToken is ERC20, Ownable {
         emit WhitelistUpdated(msg.sender, true);
     }
 
+    /// @dev Sets up anti-sniper phases with specified fee and wallet limits
+    function _setupAntiSniperPhases() private {
+        // Phase 1: First 1 minute - 40% fee, 0.10% max wallet
+        antiSniperPhases[0] = TimeFeePhase({
+            duration: 60,        // 1 minute
+            feePercentage: 40,   // 40% fee
+            maxWalletPct: 10     // 0.10% of total supply (10 basis points)
+        });
+        
+        // Phase 2: 2-5 minutes - 30% fee, 0.15% max wallet  
+        antiSniperPhases[1] = TimeFeePhase({
+            duration: 240,       // 4 minutes (total 5 minutes from start)
+            feePercentage: 30,   // 30% fee
+            maxWalletPct: 15     // 0.15% of total supply (15 basis points)
+        });
+        
+        // Phase 3: 6-8 minutes - 20% fee, 0.20% max wallet
+        antiSniperPhases[2] = TimeFeePhase({
+            duration: 180,       // 3 minutes (total 8 minutes from start)
+            feePercentage: 20,   // 20% fee
+            maxWalletPct: 20     // 0.20% of total supply (20 basis points)
+        });
+        
+        // Phase 4: 9-15 minutes - 10% fee, 0.30% max wallet
+        antiSniperPhases[3] = TimeFeePhase({
+            duration: 420,       // 7 minutes (total 15 minutes from start)
+            feePercentage: 10,   // 10% fee
+            maxWalletPct: 30     // 0.30% of total supply (30 basis points)
+        });
+    }
+
     /// @dev Sets up timelock controller
     function _setupTimelock(
         address[] memory proposers, 
@@ -237,6 +291,7 @@ contract TrezaToken is ERC20, Ownable {
         tradingEnabled = _enabled;
         if (_enabled && tradingEnabledBlock == 0) {
             tradingEnabledBlock = block.number;
+            tradingEnabledTimestamp = block.timestamp;
         }
         emit TradingEnabledToggled(_enabled);
     }
@@ -277,6 +332,24 @@ contract TrezaToken is ERC20, Ownable {
         antiBotBlockCount = _blocks;
         transferCooldown = _cooldownSeconds;
         emit AntiSniperConfigUpdated(_blocks, _cooldownSeconds);
+    }
+
+    /// @notice Enable/disable time-based anti-sniper mechanism
+    /// @param _enabled True to enable time-based fees and max wallet limits
+    function setTimeBasedAntiSniper(bool _enabled) external onlyOwner {
+        timeBasedAntiSniperEnabled = _enabled;
+        emit TimeBasedAntiSniperToggled(_enabled);
+    }
+
+    /// @notice Update anti-sniper phases configuration
+    /// @param phases Array of 4 TimeFeePhase structs defining the anti-sniper timeline
+    function setAntiSniperPhases(TimeFeePhase[4] calldata phases) external onlyOwner {
+        for (uint256 i = 0; i < 4; i++) {
+            require(phases[i].feePercentage <= 50, "Treza: fee too high");
+            require(phases[i].maxWalletPct <= 10000, "Treza: max wallet too high"); // Max 100%
+            antiSniperPhases[i] = phases[i];
+        }
+        emit AntiSniperPhasesUpdated();
     }
 
     // =========================================================================
@@ -326,7 +399,52 @@ contract TrezaToken is ERC20, Ownable {
 
     /// @notice Returns the current transfer fee percentage
     function getCurrentFee() public view returns (uint256) {
+        // If time-based anti-sniper is disabled, use manual fee
+        if (!timeBasedAntiSniperEnabled || tradingEnabledTimestamp == 0) {
+            return currentFeePercentage;
+        }
+
+        uint256 timeSinceLaunch = block.timestamp - tradingEnabledTimestamp;
+        uint256 cumulativeTime = 0;
+
+        // Check each phase to determine current fee
+        for (uint256 i = 0; i < antiSniperPhases.length; i++) {
+            cumulativeTime += antiSniperPhases[i].duration;
+            if (timeSinceLaunch <= cumulativeTime) {
+                return antiSniperPhases[i].feePercentage;
+            }
+        }
+
+        // After all anti-sniper phases, use manual fee
         return currentFeePercentage;
+    }
+
+    /// @notice Returns the current max wallet limit as percentage of total supply (in basis points)
+    function getCurrentMaxWalletBasisPoints() public view returns (uint256) {
+        // If time-based anti-sniper is disabled, no max wallet limit
+        if (!timeBasedAntiSniperEnabled || tradingEnabledTimestamp == 0) {
+            return 10000; // 100% - no limit
+        }
+
+        uint256 timeSinceLaunch = block.timestamp - tradingEnabledTimestamp;
+        uint256 cumulativeTime = 0;
+
+        // Check each phase to determine current max wallet
+        for (uint256 i = 0; i < antiSniperPhases.length; i++) {
+            cumulativeTime += antiSniperPhases[i].duration;
+            if (timeSinceLaunch <= cumulativeTime) {
+                return antiSniperPhases[i].maxWalletPct;
+            }
+        }
+
+        // After all anti-sniper phases, no max wallet limit
+        return 10000; // 100% - no limit
+    }
+
+    /// @notice Returns the current max wallet limit in tokens
+    function getCurrentMaxWallet() public view returns (uint256) {
+        uint256 basisPoints = getCurrentMaxWalletBasisPoints();
+        return (TOTAL_SUPPLY * basisPoints) / 10000;
     }
 
     /// @notice Update the transfer fee percentage
@@ -380,9 +498,17 @@ contract TrezaToken is ERC20, Ownable {
             lastTransferTime[sender] = block.timestamp;
         }
 
+        // 6. Check max wallet limit (except for whitelisted addresses and fee wallets)
+        if (!isWhitelisted[recipient] && !isFeeExempt[recipient] && timeBasedAntiSniperEnabled) {
+            uint256 maxWallet = getCurrentMaxWallet();
+            uint256 recipientBalance = balanceOf(recipient);
+            require(
+                recipientBalance + amount <= maxWallet,
+                "Treza: max wallet exceeded"
+            );
+        }
 
-
-        // 6. Apply normal fee logic
+        // 7. Apply normal fee logic
         _transferWithPossibleFee(sender, recipient, amount);
     }
 
@@ -479,5 +605,44 @@ contract TrezaToken is ERC20, Ownable {
             whitelistMode,
             antiBotRemaining
         );
+    }
+
+    /// @notice Get current anti-sniper status and timeline
+    function getAntiSniperStatus() external view returns (
+        bool _timeBasedEnabled,
+        uint256 _currentPhase,
+        uint256 _currentFee,
+        uint256 _currentMaxWallet,
+        uint256 _timeRemainingInPhase
+    ) {
+        if (!timeBasedAntiSniperEnabled || tradingEnabledTimestamp == 0) {
+            return (false, 0, currentFeePercentage, TOTAL_SUPPLY, 0);
+        }
+
+        uint256 timeSinceLaunch = block.timestamp - tradingEnabledTimestamp;
+        uint256 cumulativeTime = 0;
+
+        for (uint256 i = 0; i < antiSniperPhases.length; i++) {
+            cumulativeTime += antiSniperPhases[i].duration;
+            if (timeSinceLaunch <= cumulativeTime) {
+                uint256 timeRemainingInPhase = cumulativeTime - timeSinceLaunch;
+                return (
+                    true,
+                    i + 1, // Phase 1-4
+                    antiSniperPhases[i].feePercentage,
+                    getCurrentMaxWallet(),
+                    timeRemainingInPhase
+                );
+            }
+        }
+
+        // After all phases
+        return (true, 5, currentFeePercentage, TOTAL_SUPPLY, 0);
+    }
+
+    /// @notice Get anti-sniper phase configuration
+    function getAntiSniperPhase(uint256 phaseIndex) external view returns (TimeFeePhase memory) {
+        require(phaseIndex < 4, "Treza: invalid phase index");
+        return antiSniperPhases[phaseIndex];
     }
 }
