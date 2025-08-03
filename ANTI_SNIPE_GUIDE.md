@@ -2,9 +2,17 @@
 
 ## 🎯 **Overview**
 
-Your enhanced TREZA token includes comprehensive anti-sniping protection to ensure a fair launch and prevent bot attacks. This guide explains all the protection mechanisms and how to use them.
+Your enhanced TREZA token includes comprehensive anti-sniping protection to ensure a fair launch and prevent bot attacks. This guide explains all the protection mechanisms including the new **TIME-BASED ANTI-SNIPER SYSTEM** with dynamic fees and max wallet limits.
 
 ## 🔥 **Anti-Sniping Features**
+
+### 🚀 **NEW: Time-Based Anti-Sniper Launch Mechanism**
+- **Phase 1 (0-1 min):** 40% fee, 0.10% max wallet
+- **Phase 2 (1-5 min):** 30% fee, 0.15% max wallet  
+- **Phase 3 (5-8 min):** 20% fee, 0.20% max wallet
+- **Phase 4 (8-15 min):** 10% fee, 0.30% max wallet
+- **After 15 min:** Normal 5% fee, no max wallet limit
+- **Purpose:** Extreme deterrent for snipers while allowing fair access
 
 ### 1. **Whitelist-Only Trading Period**
 - **What it does:** Only whitelisted addresses can trade initially
@@ -56,22 +64,26 @@ setWhitelist([user1, user2, user3], true);
 
 ### **Phase 3: Launch** 🚀
 ```solidity
-// 5. Enable trading (starts anti-bot protection)
+// 5. Enable trading (starts anti-bot protection + time-based fees)
 setTradingEnabled(true);
+// ⏰ TIME-BASED ANTI-SNIPER ACTIVATED:
+// - First 60 seconds: 40% fee, 0.10% max wallet
+// - Next 4 minutes: 30% fee, 0.15% max wallet
 
 // 6. Wait for community whitelist trading period
 // Monitor for any suspicious activity
-
-
 ```
 
 ### **Phase 4: Public Launch** 🌍
 ```solidity
-// 8. Disable whitelist mode (opens to public)
+// 7. Disable whitelist mode (opens to public with time-based protection)
 setWhitelistMode(false);
+// ⏰ TIME-BASED PROTECTION CONTINUES:
+// - Minutes 5-8: 20% fee, 0.20% max wallet
+// - Minutes 8-15: 10% fee, 0.30% max wallet
+// - After 15 min: Normal 5% fee, no max wallet
 
-// 7. Monitor and adjust as needed
-
+// 8. Monitor and adjust as needed
 ```
 
 ## 🛠️ **Management Functions**
@@ -90,14 +102,33 @@ isWhitelisted[address] // returns bool
 
 ### **Launch Control**
 ```solidity
-// Enable/disable all trading
+// Enable/disable all trading (activates time-based anti-sniper)
 setTradingEnabled(true/false);
 
 // Enable/disable whitelist-only mode
 setWhitelistMode(true/false);
 
+// Enable/disable time-based anti-sniper mechanism
+setTimeBasedAntiSniper(true/false);
+```
 
+### **🚀 New Time-Based Anti-Sniper Management**
+```solidity
+// Get current anti-sniper status
+getAntiSniperStatus() // Returns phase, fee, max wallet, time remaining
 
+// Get current dynamic fee (time-based or manual)
+getCurrentFee() // Returns current applicable fee percentage
+
+// Get current max wallet limit
+getCurrentMaxWallet() // Returns max wallet in tokens
+getCurrentMaxWalletBasisPoints() // Returns max wallet in basis points
+
+// Update anti-sniper phase configuration (owner only)
+setAntiSniperPhases(phases) // Array of 4 TimeFeePhase structs
+
+// Get specific phase configuration
+getAntiSniperPhase(phaseIndex) // Returns phase details
 ```
 
 ### **Emergency Functions**
@@ -127,11 +158,20 @@ tradingEnabledBlock // block when trading was enabled
 |---------|---------------|---------|
 | Trading Enabled | `false` | Launch control |
 | Whitelist Mode | `true` | Bot prevention |
-| Max Transaction | 100,000 TREZA (0.1%) | Anti-whale |
-| Max Wallet | 200,000 TREZA (0.2%) | Anti-whale |
+| Time-Based Anti-Sniper | `true` | Dynamic protection |
 | Transfer Cooldown | 1 second | Anti-spam |
 | Anti-Bot Blocks | 3 blocks | Launch protection |
-| Fee Percentage | 4% | Revenue generation |
+| **Normal Fee Percentage** | **5%** | Revenue generation |
+
+### 🚀 **Time-Based Anti-Sniper Phases**
+
+| Phase | Duration | Fee % | Max Wallet % | Max Wallet Tokens |
+|-------|----------|-------|--------------|-------------------|
+| **Phase 1** | 0-1 min | **40%** | 0.10% | 100,000 TREZA |
+| **Phase 2** | 1-5 min | **30%** | 0.15% | 150,000 TREZA |
+| **Phase 3** | 5-8 min | **20%** | 0.20% | 200,000 TREZA |
+| **Phase 4** | 8-15 min | **10%** | 0.30% | 300,000 TREZA |
+| **Normal** | 15+ min | **5%** | No limit | No limit |
 
 ## 🎯 **Pre-Whitelisted Addresses**
 
@@ -148,21 +188,33 @@ These addresses are automatically whitelisted during deployment:
 
 ## 🚨 **Common Anti-Sniping Scenarios**
 
-### **Scenario 1: Bot tries to buy at launch**
-- ❌ **Result:** Transaction reverted (not whitelisted)
-- ✅ **Protection:** Whitelist-only mode
+### **Scenario 1: Bot tries to buy at launch (0-1 minute)**
+- ❌ **Result:** Transaction reverted (not whitelisted) OR 40% fee + max 100K tokens
+- ✅ **Protection:** Whitelist-only mode + extreme fees + max wallet
 
-### **Scenario 2: Whale tries to buy large amount**
-- ❌ **Result:** Transaction reverted (exceeds max transaction)
-- ✅ **Protection:** Max transaction limits
+### **Scenario 2: Sniper tries large buy in Phase 2 (1-5 minutes)**
+- ❌ **Result:** 30% fee taken + limited to 150K tokens max wallet
+- ✅ **Protection:** Time-based fees + max wallet limits
 
-### **Scenario 3: Bot tries rapid transactions**
+### **Scenario 3: Whale tries to accumulate in Phase 3 (5-8 minutes)**
+- ❌ **Result:** 20% fee + max 200K tokens per wallet
+- ✅ **Protection:** Dynamic max wallet enforcement
+
+### **Scenario 4: Bot tries rapid transactions**
 - ❌ **Result:** Subsequent transactions fail (cooldown active)
 - ✅ **Protection:** Transfer cooldown
 
-### **Scenario 4: Bot detected after launch**
+### **Scenario 5: Multiple wallets try to bypass max wallet**
+- ❌ **Result:** Each wallet still limited by current phase max
+- ✅ **Protection:** Per-wallet max enforcement
+
+### **Scenario 6: Bot detected after launch**
 - ❌ **Result:** Address blacklisted, cannot trade
 - ✅ **Protection:** Emergency blacklist function
+
+### **🚀 NEW: Scenario 7: Normal user after 15 minutes**
+- ✅ **Result:** Normal 5% fee, no max wallet limit
+- ✅ **Protection:** Fair trading for legitimate users
 
 ## 💡 **Best Practices**
 
@@ -181,6 +233,24 @@ These addresses are automatically whitelisted during deployment:
 
 ## 🔍 **Monitoring & Analytics**
 
+### **🚀 NEW: Time-Based Anti-Sniper Monitoring**
+```solidity
+// Get complete anti-sniper status
+getAntiSniperStatus() 
+// Returns: enabled, currentPhase, currentFee, currentMaxWallet, timeRemaining
+
+// Monitor current fees and limits
+getCurrentFee()                    // Current fee percentage
+getCurrentMaxWallet()              // Current max wallet in tokens  
+getCurrentMaxWalletBasisPoints()   // Current max wallet in basis points
+
+// Check specific phase configuration
+getAntiSniperPhase(0)             // Phase 1 config
+getAntiSniperPhase(1)             // Phase 2 config
+// etc.
+```
+
+### **Traditional Monitoring**
 ```solidity
 // Check current protection status
 getLaunchStatus() 
@@ -194,6 +264,18 @@ isWhitelisted[suspiciousAddress]
 antiBotBlocksRemaining = (tradingEnabledBlock + antiBotBlockCount) - currentBlock
 ```
 
+### **🚀 Frontend Integration Example**
+```javascript
+// Real-time anti-sniper status for UI
+const status = await contract.getAntiSniperStatus();
+console.log(`Phase ${status._currentPhase}: ${status._currentFee}% fee, ${status._timeRemainingInPhase}s remaining`);
+
+// Check if user can buy amount
+const maxWallet = await contract.getCurrentMaxWallet();
+const userBalance = await contract.balanceOf(userAddress);
+const canBuy = userBalance + purchaseAmount <= maxWallet;
+```
+
 ## 🎊 **Why This Matters**
 
 **Without Anti-Sniping Protection:**
@@ -202,12 +284,16 @@ antiBotBlocksRemaining = (tradingEnabledBlock + antiBotBlockCount) - currentBloc
 - 😞 Community gets worse prices
 - 💔 Unfair launch experience
 
-**With Anti-Sniping Protection:**
-- ✅ Fair access for whitelisted community
-- ✅ Controlled launch sequence
-- ✅ Protection against manipulation
-- ✅ Emergency controls available
-- 🎉 **Successful fair launch!**
+**🚀 With TIME-BASED Anti-Sniping Protection:**
+- ✅ **Extreme deterrent for bots** (40% fees early)
+- ✅ **Graduated fee reduction** rewards patience
+- ✅ **Max wallet limits** prevent whale accumulation
+- ✅ **Fair access for whitelisted community**
+- ✅ **Controlled launch sequence** with automatic progression
+- ✅ **Protection against manipulation** across all phases
+- ✅ **Emergency controls available** throughout
+- ✅ **Normal trading** after 15 minutes for regular users
+- 🎉 **Most comprehensive fair launch system available!**
 
 ---
 
