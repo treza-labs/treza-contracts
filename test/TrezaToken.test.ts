@@ -88,9 +88,9 @@ describe("TrezaToken", function () {
       expect(marketingBalance).to.equal(totalSupply * 10n / 100n);
     });
 
-    it("Should set initial fee to 5%", async function () {
+    it("Should set initial fee to 0% during whitelist mode", async function () {
       const currentFee = await trezaToken.getCurrentFee();
-      expect(currentFee).to.equal(5);
+      expect(currentFee).to.equal(0); // 0% during whitelist period
     });
 
     it("Should exempt treasury wallets from fees", async function () {
@@ -100,11 +100,31 @@ describe("TrezaToken", function () {
   });
 
   describe("Transfer Fees", function () {
-    beforeEach(async function () {
-      // Enable trading and disable whitelist mode for testing fees
+    it("Should charge 0% fee during whitelist mode", async function () {
+      // Enable trading but keep whitelist mode enabled
       await trezaToken.connect(timelock).setTradingEnabled(true);
-      await trezaToken.connect(timelock).setWhitelistMode(false);
+      // whitelistMode is true by default
+      
+      const transferAmount = ethers.parseEther("1000");
+      
+      // Transfer from liquidityWallet (who has tokens and is whitelisted) to teamWallet (also whitelisted)
+      const teamBalanceBefore = await trezaToken.balanceOf(teamWallet.address);
+      
+      await trezaToken.connect(liquidityWallet).transfer(teamWallet.address, transferAmount);
+      
+      const teamBalanceAfter = await trezaToken.balanceOf(teamWallet.address);
+      const received = teamBalanceAfter - teamBalanceBefore;
+      
+      // Should receive the full amount (no fees during whitelist mode)
+      expect(received).to.equal(transferAmount);
     });
+
+    describe("Public Trading Fees", function () {
+      beforeEach(async function () {
+        // Enable trading and disable whitelist mode for testing public trading fees
+        await trezaToken.connect(timelock).setTradingEnabled(true);
+        await trezaToken.connect(timelock).setWhitelistMode(false);
+      });
 
     it("Should charge 5% fee on transfers between non-exempt addresses", async function () {
       const transferAmount = ethers.parseEther("1000");
@@ -150,6 +170,7 @@ describe("TrezaToken", function () {
       const bobBalance = await trezaToken.balanceOf(bob.address);
       expect(bobBalance).to.equal(transferAmount);
     });
+    });
   });
 
   describe("Fee Management", function () {
@@ -180,6 +201,21 @@ describe("TrezaToken", function () {
       // Enable trading to activate time-based anti-sniper
       await trezaToken.connect(timelock).setTradingEnabled(true);
       await trezaToken.connect(timelock).setWhitelistMode(false);
+    });
+
+    it("Should transition from 0% fee (whitelist) to 40% fee (public)", async function () {
+      // First, enable trading but keep whitelist mode - should be 0% fee
+      await trezaToken.connect(timelock).setTradingEnabled(true);
+      await trezaToken.connect(timelock).setWhitelistMode(true); // Ensure whitelist mode is on
+      
+      let currentFee = await trezaToken.getCurrentFee();
+      expect(currentFee).to.equal(0); // 0% during whitelist mode
+      
+      // Now disable whitelist mode (start public trading) - should jump to 40%
+      await trezaToken.connect(timelock).setWhitelistMode(false);
+      
+      currentFee = await trezaToken.getCurrentFee();
+      expect(currentFee).to.equal(40); // 40% in Phase 1 of public trading
     });
 
     it("Should start with 40% fee in Phase 1 (0-1 minute)", async function () {
@@ -244,7 +280,7 @@ describe("TrezaToken", function () {
       // Disable time-based anti-sniper
       await trezaToken.connect(timelock).setTimeBasedAntiSniper(false);
       
-      // Should now use manual fee (5%)
+      // Should now use manual fee (5%) since we're not in whitelist mode
       const currentFee = await trezaToken.getCurrentFee();
       expect(currentFee).to.equal(5);
       

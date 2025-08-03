@@ -10,7 +10,8 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 
 ### 🛡️ Anti-Sniping Protection
 
-**🚀 NEW: Time-Based Anti-Sniper Launch Mechanism:**
+**🚀 Time-Based Anti-Sniper Launch Mechanism:**
+- **Private Period:** 0% fee, no max wallet (whitelist only)
 - **Phase 1 (0-1 min):** 40% fee, 0.10% max wallet (100K TREZA)
 - **Phase 2 (1-5 min):** 30% fee, 0.15% max wallet (150K TREZA)
 - **Phase 3 (5-8 min):** 20% fee, 0.20% max wallet (200K TREZA)
@@ -36,8 +37,9 @@ TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collecti
 - **Marketing & Operations:** 10% (10M TREZA)
 
 **Dynamic Fee System:**
+- **Private Period:** 0% on all transfers (whitelist-only trading)
+- **Public Launch Fees:** 40% → 30% → 20% → 10% → 5% (first 15 minutes)
 - **Normal Fee:** 5% on all transfers (after anti-sniper period)
-- **Time-Based Fees:** 40% → 30% → 20% → 10% → 5% (first 15 minutes)
 - **Adjustable Range:** 0-10% (governance controlled)
 - **Dual Treasury:** 50/50 split between two treasury wallets
 - **Fee Exemptions:** Treasury wallets and whitelisted addresses exempt
@@ -104,13 +106,14 @@ setFeeExemption(address, bool)       // Manage fee exemptions
 getCurrentFee()                      // View current fee (time-based or manual)
 ```
 
-### 🚀 Time-Based Anti-Sniper Management
+### Time-Based Anti-Sniper Management
 ```solidity
 setTimeBasedAntiSniper(bool)         // Enable/disable time-based system
 setAntiSniperPhases(phases)          // Update phase configurations
 getAntiSniperStatus()                // Get current phase, fee, max wallet, time remaining
 getCurrentMaxWallet()                // View current max wallet limit
 getAntiSniperPhase(uint256)          // Get specific phase configuration
+startPublicTradingTimer()            // Manually start anti-sniper countdown
 ```
 
 ### Status Checking
@@ -150,16 +153,19 @@ canTrade(address)                    // Check if address can trade
 ## 💸 Fee Distribution Flow
 
 1. **Transfer initiated** between addresses
-2. **Check exemptions** (treasury wallets, whitelisted addresses)  
-3. **Check max wallet limits** (if time-based anti-sniper enabled)
-4. **Apply current fee** (time-based: 40%→30%→20%→10%→5% OR manual: 0-10% range)
-5. **Split fees 50/50** between treasury wallets
-6. **Transfer remaining** amount to recipient
+2. **Check trading mode** (whitelist-only vs public trading)
+3. **Check exemptions** (treasury wallets, whitelisted addresses)  
+4. **Check max wallet limits** (if time-based anti-sniper enabled and public trading)
+5. **Apply current fee:**
+   - **Private Period:** 0% (whitelist-only trading)
+   - **Public Trading:** 40%→30%→20%→10%→5% (time-based) OR manual fee
+6. **Split fees 50/50** between treasury wallets (if fees apply)
+7. **Transfer remaining** amount to recipient
 
 **Fee Exemptions & Max Wallet Bypasses:**
 - Treasury wallets (automatic exemption from fees and max wallet)
 - Whitelisted addresses (configurable exemption from max wallet)
-- Contract-to-contract transfers (when appropriate)
+- Private period (0% fees for all transactions during whitelist mode)
 
 ---
 
@@ -201,12 +207,13 @@ canTrade(address)                    // Check if address can trade
 - **Anti-Bot Protection:** 3 blocks
 - **Normal Fee:** 5% (after anti-sniper period)
 
-### 🚀 Time-Based Anti-Sniper Configuration
-- **Phase 1 (0-1 min):** 40% fee, 100,000 TREZA max wallet (0.10%)
-- **Phase 2 (1-5 min):** 30% fee, 150,000 TREZA max wallet (0.15%)
-- **Phase 3 (5-8 min):** 20% fee, 200,000 TREZA max wallet (0.20%)
-- **Phase 4 (8-15 min):** 10% fee, 300,000 TREZA max wallet (0.30%)
-- **Normal (15+ min):** 5% fee, no max wallet limit
+### Time-Based Anti-Sniper Configuration
+- **Private Period:** 0% fee, no max wallet (whitelist-only trading)
+- **Phase 1 (0-1 min public):** 40% fee, 100,000 TREZA max wallet (0.10%)
+- **Phase 2 (1-5 min public):** 30% fee, 150,000 TREZA max wallet (0.15%)
+- **Phase 3 (5-8 min public):** 20% fee, 200,000 TREZA max wallet (0.20%)
+- **Phase 4 (8-15 min public):** 10% fee, 300,000 TREZA max wallet (0.30%)
+- **Normal (15+ min public):** 5% fee, no max wallet limit
 
 ---
 
@@ -246,7 +253,7 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ### Compared to Basic Fee Tokens  
 - ❌ **Basic:** Simple percentage fees
-- ✅ **TREZA:** Time-based dynamic fees (40%→5%) + dual treasury + governance
+- ✅ **TREZA:** Free private trading + time-based dynamic fees (0%→40%→5%) + dual treasury + governance
 
 ### Compared to Manual Launch Tokens
 - ❌ **Manual:** Prone to human error and rushed launches
@@ -262,7 +269,8 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 TREZA Token provides:
 - 🛡️ **Most comprehensive bot protection available** with time-based anti-sniper system
-- 💰 **Dynamic tokenomics** with graduated fees (40%→30%→20%→10%→5%)
+- 🆓 **Free private trading** for trusted early supporters (0% fees)
+- 💰 **Dynamic tokenomics** with graduated fees (0%→40%→30%→20%→10%→5%)
 - 🚀 **Automated launch protection** across 4 phases over 15 minutes
 - 🏛️ **Decentralized governance** with timelock controller
 - 🔒 **Multi-layered security** features
