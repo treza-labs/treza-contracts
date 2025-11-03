@@ -19,12 +19,12 @@ contract TrezaToken is ERC20, Ownable {
     uint256 public constant TOTAL_SUPPLY = 100_000_000 * 1e18;
 
     /// @notice Allocation percentages for initial minting
-    uint256 public constant PCT_INITIAL_LIQUIDITY    = 35;  // 35%
-    uint256 public constant PCT_TEAM                 = 20;  // 20%
-    uint256 public constant PCT_TREASURY             = 20;  // 20%
-    uint256 public constant PCT_PARTNERSHIPS_GRANTS  = 10;  // 10%
-    uint256 public constant PCT_RND                  = 5;   // 5%
+    uint256 public constant PCT_TEAM                 = 65;  // 65%
+    uint256 public constant PCT_INITIAL_LIQUIDITY    = 10;  // 10%
     uint256 public constant PCT_MARKETING_OPS        = 10;  // 10%
+    uint256 public constant PCT_RND                  = 5;   // 5%
+    uint256 public constant PCT_SEED_INVESTORS       = 5;   // 5%
+    uint256 public constant PCT_CEX_LISTING          = 5;   // 5%
 
     /// @notice Fee split: 50% each to two treasury wallets
     uint256 public constant FEE1_PCT = 50;   // 50% of total fee
@@ -102,12 +102,12 @@ contract TrezaToken is ERC20, Ownable {
 
     /// @dev Struct to hold constructor parameters to avoid stack too deep
     struct ConstructorParams {
-        address initialLiquidityWallet;
         address teamWallet;
-        address treasuryWallet;
-        address partnershipsGrantsWallet;
-        address rndWallet;
+        address initialLiquidityWallet;
         address marketingOpsWallet;
+        address rndWallet;
+        address seedInvestorsWallet;
+        address cexListingWallet;
         address treasury1;
         address treasury2;
         uint256 timelockDelay;
@@ -173,12 +173,12 @@ contract TrezaToken is ERC20, Ownable {
     /// @dev Validates that all required addresses are not zero
     function _validateAddresses(ConstructorParams memory params) private pure {
         require(
-            params.initialLiquidityWallet != address(0) &&
             params.teamWallet != address(0) &&
-            params.treasuryWallet != address(0) &&
-            params.partnershipsGrantsWallet != address(0) &&
-            params.rndWallet != address(0) &&
+            params.initialLiquidityWallet != address(0) &&
             params.marketingOpsWallet != address(0) &&
+            params.rndWallet != address(0) &&
+            params.seedInvestorsWallet != address(0) &&
+            params.cexListingWallet != address(0) &&
             params.treasury1 != address(0) &&
             params.treasury2 != address(0),
             "Treza: zero address"
@@ -218,12 +218,12 @@ contract TrezaToken is ERC20, Ownable {
 
     /// @dev Mints initial token allocations
     function _mintInitialAllocations(ConstructorParams memory params) private {
-        _mint(params.initialLiquidityWallet, (TOTAL_SUPPLY * PCT_INITIAL_LIQUIDITY) / 100);
         _mint(params.teamWallet, (TOTAL_SUPPLY * PCT_TEAM) / 100);
-        _mint(params.treasuryWallet, (TOTAL_SUPPLY * PCT_TREASURY) / 100);
-        _mint(params.partnershipsGrantsWallet, (TOTAL_SUPPLY * PCT_PARTNERSHIPS_GRANTS) / 100);
-        _mint(params.rndWallet, (TOTAL_SUPPLY * PCT_RND) / 100);
+        _mint(params.initialLiquidityWallet, (TOTAL_SUPPLY * PCT_INITIAL_LIQUIDITY) / 100);
         _mint(params.marketingOpsWallet, (TOTAL_SUPPLY * PCT_MARKETING_OPS) / 100);
+        _mint(params.rndWallet, (TOTAL_SUPPLY * PCT_RND) / 100);
+        _mint(params.seedInvestorsWallet, (TOTAL_SUPPLY * PCT_SEED_INVESTORS) / 100);
+        _mint(params.cexListingWallet, (TOTAL_SUPPLY * PCT_CEX_LISTING) / 100);
     }
 
     /// @dev Sets up treasury wallets and exemptions
@@ -241,24 +241,24 @@ contract TrezaToken is ERC20, Ownable {
     /// @dev Sets up initial whitelist with all allocation wallets
     function _setupInitialWhitelist(ConstructorParams memory params) private {
         // Automatically whitelist all initial allocation wallets
-        isWhitelisted[params.initialLiquidityWallet] = true;
         isWhitelisted[params.teamWallet] = true;
-        isWhitelisted[params.treasuryWallet] = true;
-        isWhitelisted[params.partnershipsGrantsWallet] = true;
-        isWhitelisted[params.rndWallet] = true;
+        isWhitelisted[params.initialLiquidityWallet] = true;
         isWhitelisted[params.marketingOpsWallet] = true;
+        isWhitelisted[params.rndWallet] = true;
+        isWhitelisted[params.seedInvestorsWallet] = true;
+        isWhitelisted[params.cexListingWallet] = true;
         isWhitelisted[params.treasury1] = true;
         isWhitelisted[params.treasury2] = true;
         
         // Whitelist the contract deployer
         isWhitelisted[msg.sender] = true;
         
-        emit WhitelistUpdated(params.initialLiquidityWallet, true);
         emit WhitelistUpdated(params.teamWallet, true);
-        emit WhitelistUpdated(params.treasuryWallet, true);
-        emit WhitelistUpdated(params.partnershipsGrantsWallet, true);
-        emit WhitelistUpdated(params.rndWallet, true);
+        emit WhitelistUpdated(params.initialLiquidityWallet, true);
         emit WhitelistUpdated(params.marketingOpsWallet, true);
+        emit WhitelistUpdated(params.rndWallet, true);
+        emit WhitelistUpdated(params.seedInvestorsWallet, true);
+        emit WhitelistUpdated(params.cexListingWallet, true);
         emit WhitelistUpdated(params.treasury1, true);
         emit WhitelistUpdated(params.treasury2, true);
         emit WhitelistUpdated(msg.sender, true);
