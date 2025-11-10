@@ -2,7 +2,14 @@
 
 ## Overview
 
-The TREZA token governance system uses OpenZeppelin's `TimelockController` which implements a two-step governance process with distinct roles for proposing and executing governance actions. This document explains the **Proposers** and **Executors** roles and how to configure them properly.
+**Note: This document describes governance roles for when you're ready to add governance to your TREZA token.**
+
+Your TREZA token currently uses simple ownership for fast launch iteration. When you're ready to decentralize, you can deploy separate governance contracts that use OpenZeppelin's `TimelockController` with distinct roles for proposing and executing governance actions.
+
+**Current State:** Direct ownership (you control the token immediately)
+**Future State:** Governance with proposers/executors (described in this document)
+
+See `GOVERNANCE_MIGRATION_GUIDE.md` for step-by-step migration instructions.
 
 ## Understanding the Roles
 
@@ -93,55 +100,76 @@ const executors = [
 
 ## Validation Requirements
 
-Your timelock contract enforces these requirements:
+When you deploy a separate timelock contract, it will enforce these requirements:
 
 ```solidity
-// From your contract validation
-require(proposers.length > 0, "Treza: no proposers provided");
-require(executors.length > 0, "Treza: no executors provided");
+// TimelockController validation (in separate governance contract)
+require(proposers.length > 0, "TimelockController: no proposers provided");
+require(executors.length > 0, "TimelockController: no executors provided");
 
 // No zero addresses allowed in proposers or executors arrays
 // (except for the special case of zero address meaning "anyone" for executors)
 ```
 
+**Note:** These validations are NOT in your current Treza token contract - they'll be in the separate governance contracts you deploy later.
+
 ## Example Configurations
 
-### Configuration 1: DAO with Open Execution
+**When you're ready to add governance**, you'll deploy separate contracts with these configurations:
+
+### Configuration 1: Simple Timelock with Open Execution
 ```typescript
-const constructorParams = {
-  // ... other params
-  timelockDelay: 86400 // 24 hours
-};
+// Deploy separate timelock contract
+const TrezaTimelock = await ethers.getContractFactory("TrezaTimelock");
 
 const proposers = [
-  "0x...", // Governor contract address
-  "0x...", // Emergency multisig
+  "0xYourTeamMultisig",     // Team can propose
+  "0xYourBackupMultisig",  // Backup proposer
 ];
 
 const executors = [
   "0x0000000000000000000000000000000000000000" // Anyone can execute
 ];
+
+const minDelay = 86400; // 24 hours
+
+const timelock = await TrezaTimelock.deploy(minDelay, proposers, executors);
+
+// Then transfer your token ownership to the timelock
+await trezaToken.transferOwnership(await timelock.getAddress());
 ```
 
-### Configuration 2: Restricted Governance
+### Configuration 2: Full DAO Governance
 ```typescript
-const proposers = [
-  "0x...", // Main governance address
-];
+// Deploy governor + timelock contracts
+const proposers = []; // Governor contract will be the proposer
+const executors = []; // Governor contract will be the executor
 
-const executors = [
-  "0x...", // Governor contract
-  "0x...", // Core team multisig
-  "0x...", // Community multisig
-];
+const timelock = await TrezaTimelock.deploy(minDelay, proposers, executors);
+const governor = await TrezaGovernor.deploy(trezaTokenAddress, timelockAddress);
+
+// Setup roles and transfer ownership
+// (See GOVERNANCE_MIGRATION_GUIDE.md for full details)
 ```
 
 ## Workflow Example
 
+**Current Workflow (Direct Ownership):**
+```typescript
+// You can change anything immediately
+await trezaToken.setFeePercentage(3); // Instant change
+```
+
+**Future Workflow (With Governance):**
+
 1. **Proposal Phase**: Proposer submits a governance proposal
    ```typescript
-   // Proposer queues an operation
-   await timelock.schedule(target, value, data, predecessor, salt, delay);
+   // Example: Propose fee change to 3%
+   const target = trezaTokenAddress;
+   const data = trezaToken.interface.encodeFunctionData("setFeePercentage", [3]);
+   
+   // Proposer queues the operation
+   await timelock.schedule(target, 0, data, ethers.ZeroHash, salt, 86400);
    ```
 
 2. **Delay Phase**: Community has 24 hours to review
@@ -152,7 +180,7 @@ const executors = [
 3. **Execution Phase**: After delay expires, executor can execute
    ```typescript
    // Executor (or anyone if open execution) executes
-   await timelock.execute(target, value, data, predecessor, salt);
+   await timelock.execute(target, 0, data, ethers.ZeroHash, salt);
    ```
 
 ## Best Practices
@@ -196,24 +224,45 @@ const executors = [
 - Monitor governance proposals actively
 - Have community alert systems in place
 
-## Deployment Checklist
+## Migration Checklist
 
-Before deploying your governance system:
+**Current State (No Action Needed):**
+- [x] Token deployed with simple ownership
+- [x] You have full control over all functions
+- [x] No governance delays during launch
 
-- [ ] Proposer addresses are controlled by your team
-- [ ] Executor configuration matches your security model
-- [ ] All addresses are validated (no zero addresses except for open execution)
-- [ ] Timelock delay is appropriate (24 hours recommended)
-- [ ] Backup governance procedures are documented
-- [ ] Team understands the governance workflow
+**When Ready to Add Governance:**
+- [ ] Decide on governance model (simple timelock vs full DAO)
+- [ ] Deploy separate governance contracts
+- [ ] Configure proposer addresses (controlled by your team)
+- [ ] Configure executor setup (open vs restricted)
+- [ ] Test governance flow on testnet
+- [ ] Transfer token ownership to governance contract
+- [ ] Document new governance procedures
+- [ ] Train team on governance workflow
+- [ ] Set up community monitoring and alerts
 
 ## Summary
 
+**Current State:**
+- ✅ **Simple ownership** - you control the token directly
+- ✅ **Fast iteration** - change parameters instantly
+- ✅ **Launch ready** - no governance complexity
+
+**Future Governance (When Ready):**
 The proposer/executor model provides a secure, transparent governance system where:
 
 - **Proposers** (1-3 addresses) control what gets proposed
-- **Executors** (open or restricted) control final execution
+- **Executors** (open or restricted) control final execution  
 - **Time delay** (24 hours) provides security buffer
 - **Community** has time to react to proposals
 
 This system protects against rushed decisions while maintaining operational flexibility for legitimate governance actions.
+
+**Migration Path:**
+1. **Launch** with direct ownership (current)
+2. **Add governance** when community is ready
+3. **Transfer ownership** to governance contracts
+4. **Maintain flexibility** with documented procedures
+
+See `GOVERNANCE_MIGRATION_GUIDE.md` for detailed implementation steps.
