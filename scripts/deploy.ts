@@ -15,31 +15,19 @@ async function main() {
   // Constructor parameters - UPDATE THESE ADDRESSES
   const constructorParams = {
     // Allocation wallets (UPDATE WITH YOUR ADDRESSES)
-    initialLiquidityWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4532", // 35% - Update this!
-    teamWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4533", // 20% - Update this!
-    treasuryWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4534", // 20% - Update this!
-    partnershipsGrantsWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4535", // 10% - Update this!
-    rndWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4536", // 5% - Update this!
+    initialLiquidityWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4532", // 10% - Update this!
+    teamWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4533", // 65% - Update this!
     marketingOpsWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4537", // 10% - Update this!
+    rndWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4536", // 5% - Update this!
+    seedInvestorsWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4534", // 5% - Update this!
+    cexListingWallet: "0x742d35Cc6532C4532532C4532C4532C4532C4535", // 5% - Update this!
     
     // Treasury fee wallets (UPDATE WITH YOUR ADDRESSES)
     treasury1: "0x742d35Cc6532C4532532C4532C4532C4532C4538", // 50% fees - Update this!
     treasury2: "0x742d35Cc6532C4532532C4532C4532C4532C4539", // 50% fees - Update this!
-    
-    // Timelock delay (24 hours = 86400 seconds)
-    timelockDelay: 86400
   };
 
-  // Timelock proposers and executors (UPDATE WITH YOUR ADDRESSES)
-  const proposers = [
-    "0x742d35Cc6532C4532532C4532C4532C4532C4540", // Add your governance addresses
-  ];
-  
-  const executors = [
-    "0x742d35Cc6532C4532532C4532C4532C4532C4541", // Your governor contract
-    "0x742d35Cc6532C4532532C4532C4532C4532C4542", // Team multisig
-    "0x742d35Cc6532C4532532C4532C4532C4532C4543", // Community multisig    
-  ];
+  // No governance setup needed - you'll own the contract directly!
 
   // Additional whitelist addresses to add during deployment
   const additionalWhitelistAddresses = [
@@ -67,6 +55,7 @@ async function main() {
   console.log("✅ Transfer cooldown: 1 second");
   console.log("✅ Anti-bot protection: 3 blocks after trading enabled");
   console.log("✅ Blacklist capability: Available");
+  console.log(`✅ Contract Owner: ${deployer.address} (you can transfer later)`);
   console.log("");
 
   // =========================================================================
@@ -78,9 +67,7 @@ async function main() {
   const TrezaToken = await ethers.getContractFactory("TrezaToken");
   
   const trezaToken = await TrezaToken.deploy(
-    constructorParams,
-    proposers,
-    executors
+    constructorParams
   );
 
   await trezaToken.waitForDeployment();
@@ -159,10 +146,10 @@ async function main() {
   console.log(`   • Deployer: ${deployer.address}`);
   console.log(`   • Initial Liquidity: ${constructorParams.initialLiquidityWallet}`);
   console.log(`   • Team: ${constructorParams.teamWallet}`);
-  console.log(`   • Treasury: ${constructorParams.treasuryWallet}`);
-  console.log(`   • Partnerships: ${constructorParams.partnershipsGrantsWallet}`);
+  console.log(`   • Marketing/Ops: ${constructorParams.marketingOpsWallet}`);
   console.log(`   • R&D: ${constructorParams.rndWallet}`);
-  console.log(`   • Marketing: ${constructorParams.marketingOpsWallet}`);
+  console.log(`   • Seed Investors: ${constructorParams.seedInvestorsWallet}`);
+  console.log(`   • CEX Listing: ${constructorParams.cexListingWallet}`);
   console.log(`   • Treasury Fee 1: ${constructorParams.treasury1}`);
   console.log(`   • Treasury Fee 2: ${constructorParams.treasury2}`);
   if (additionalWhitelistAddresses.length > 0) {
