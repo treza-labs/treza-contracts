@@ -58,75 +58,54 @@ await trezaToken.transferOwnership(multisigAddress);
 
 **Step 1: Deploy TimelockController**
 
-```solidity
-// contracts/TrezaTimelock.sol
-pragma solidity ^0.8.28;
+✅ **Ready-to-use contract available at:** `contracts/governance/TrezaTimelock.sol`
 
-import "@openzeppelin/contracts/governance/TimelockController.sol";
-
-contract TrezaTimelock is TimelockController {
-    constructor(
-        uint256 minDelay,           // 24 hours = 86400 seconds
-        address[] memory proposers, // Who can propose
-        address[] memory executors  // Who can execute (use 0x0 for anyone)
-    ) TimelockController(minDelay, proposers, executors, msg.sender) {}
-}
+```bash
+# Deploy the timelock governance
+npx hardhat run scripts/governance/deploy-timelock.ts --network your-network
 ```
 
-**Step 2: Deploy the Timelock**
+The contract is already created and includes all necessary functionality.
 
+**Step 2: Configure and Deploy**
+
+✅ **Ready-to-use script available at:** `scripts/governance/deploy-timelock.ts`
+
+1. **Update the proposer addresses** in the script:
 ```typescript
-// scripts/deploy-timelock.ts
-import { ethers } from "hardhat";
+const proposers = [
+    "0xYourTeamMultisig",     // UPDATE: Your team multisig
+    "0xYourBackupMultisig",  // UPDATE: Backup proposer
+];
+```
 
-async function main() {
-    const [deployer] = await ethers.getSigners();
-    
-    const proposers = [
-        "0xYourTeamMultisig",     // Team can propose
-        "0xYourBackupMultisig",  // Backup proposer
-    ];
-    
-    const executors = [
-        "0x0000000000000000000000000000000000000000" // Anyone can execute
-    ];
-    
-    const minDelay = 86400; // 24 hours
-    
-    const TrezaTimelock = await ethers.getContractFactory("TrezaTimelock");
-    const timelock = await TrezaTimelock.deploy(minDelay, proposers, executors);
-    
-    await timelock.waitForDeployment();
-    console.log("Timelock deployed to:", await timelock.getAddress());
-}
+2. **Deploy the timelock:**
+```bash
+npx hardhat run scripts/governance/deploy-timelock.ts --network your-network
 ```
 
 **Step 3: Transfer Token Ownership**
 
-```typescript
-// Transfer Treza ownership to timelock
-const timelockAddress = "0xYourDeployedTimelockAddress";
-await trezaToken.transferOwnership(timelockAddress);
+✅ **Ready-to-use script available at:** `scripts/governance/transfer-ownership.ts`
+
+1. **Update addresses** in the script
+2. **Run the transfer:**
+```bash
+npx hardhat run scripts/governance/transfer-ownership.ts --network your-network
 ```
 
 **Step 4: Governance Process**
 
-```typescript
-// Example: Propose fee change to 3%
-const target = trezaTokenAddress;
-const value = 0;
-const data = trezaToken.interface.encodeFunctionData("setFeePercentage", [3]);
-const predecessor = ethers.ZeroHash;
-const salt = ethers.keccak256(ethers.toUtf8Bytes("fee-change-proposal-1"));
-const delay = 86400; // 24 hours
+✅ **Ready-to-use examples available:**
 
-// Step 1: Proposer schedules the operation
-await timelock.schedule(target, value, data, predecessor, salt, delay);
+**Propose changes:**
+```bash
+npx hardhat run scripts/governance/examples/propose-fee-change.ts --network your-network
+```
 
-// Step 2: Wait 24 hours for community review
-
-// Step 3: Anyone can execute after delay
-await timelock.execute(target, value, data, predecessor, salt);
+**Execute proposals:**
+```bash
+npx hardhat run scripts/governance/examples/execute-proposal.ts --network your-network
 ```
 
 ---
@@ -135,9 +114,19 @@ await timelock.execute(target, value, data, predecessor, salt);
 
 **When to use:** When you want full community governance with token holder voting.
 
-**Step 1: Make Token Voting-Compatible**
+✅ **All contracts ready at:** `contracts/governance/`
+✅ **Deployment script ready at:** `scripts/governance/deploy-full-dao.ts`
 
-Your token needs voting functionality. Create a new version:
+**Step 1: Deploy Complete DAO System**
+
+```bash
+# Deploy voting token, timelock, and governor all at once
+npx hardhat run scripts/governance/deploy-full-dao.ts --network your-network
+```
+
+**Step 2: Token Migration (Optional)**
+
+Your current token needs voting functionality. We've created `TrezaTokenVoting.sol` which includes:
 
 ```solidity
 // contracts/TrezaTokenVoting.sol
