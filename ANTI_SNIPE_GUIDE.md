@@ -184,14 +184,14 @@ tradingEnabledBlock // block when trading was enabled
 ## 🎯 **Pre-Whitelisted Addresses**
 
 These addresses are automatically whitelisted during deployment:
-- ✅ Initial Liquidity Wallet
-- ✅ Team Wallet  
-- ✅ Treasury Wallet
-- ✅ Partnerships & Grants Wallet
-- ✅ R&D Wallet
-- ✅ Marketing & Operations Wallet
-- ✅ Treasury Wallet 1 (fees)
-- ✅ Treasury Wallet 2 (fees)
+- ✅ Team Wallet (65% allocation)
+- ✅ Initial Liquidity Wallet (10% allocation)
+- ✅ Marketing & Operations Wallet (10% allocation)
+- ✅ R&D Wallet (5% allocation)
+- ✅ Seed Investors Wallet (5% allocation)
+- ✅ CEX Listing Wallet (5% allocation)
+- ✅ Treasury Wallet 1 (50% of fees)
+- ✅ Treasury Wallet 2 (50% of fees)
 - ✅ Contract Deployer
 
 ## 🚨 **Common Anti-Sniping Scenarios**

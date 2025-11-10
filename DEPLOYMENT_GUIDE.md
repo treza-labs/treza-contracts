@@ -54,19 +54,19 @@ You need **8 different wallet addresses**:
 ### Token Allocations (receive tokens on deployment)
 | Wallet | Allocation | Amount |
 |--------|------------|---------|
-| **Initial Liquidity** | 35% | 35M TREZA |
-| **Team** | 20% | 20M TREZA |
-| **Treasury** | 20% | 20M TREZA |
-| **Partnerships & Grants** | 10% | 10M TREZA |
-| **R&D** | 5% | 5M TREZA |
+| **Team** | 65% | 65M TREZA |
+| **Initial Liquidity** | 10% | 10M TREZA |
 | **Marketing & Operations** | 10% | 10M TREZA |
+| **R&D** | 5% | 5M TREZA |
+| **Seed Investors** | 5% | 5M TREZA |
+| **CEX Listing** | 5% | 5M TREZA |
 
 ### Fee Collection (earn from transactions)
 - **Treasury Wallet 1:** 50% of all transfer fees
 - **Treasury Wallet 2:** 50% of all transfer fees
 
-### Governance
-- **Proposer/Executor:** Manage contract via timelock
+### Contract Owner
+- **Contract Owner:** You own the contract directly (can transfer ownership later)
 
 ---
 
@@ -100,20 +100,19 @@ You need **8 different wallet addresses**:
 
 ## 🔧 Launch Management Functions
 
-### Trading Control
+### Trading Control (Owner Only - Instant Changes)
 - `setTradingEnabled(true/false)` - Master trading switch
 - `setWhitelistMode(true/false)` - Whitelist-only mode
 
-### Whitelist Management
+### Whitelist Management (Owner Only - Instant Changes)
 - `setWhitelist([addresses], true)` - Add to whitelist
 - `setWhitelist([addresses], false)` - Remove from whitelist
 
-
-### Emergency Controls
+### Emergency Controls (Owner Only - Instant Changes)
 - `setBlacklist([addresses], true)` - Emergency blacklist
 - `setAntiSniperConfig(blocks, cooldown)` - Adjust protection
 
-### Fee Management
+### Fee Management (Owner Only - Instant Changes)
 - `setFeePercentage(newFee)` - Adjust fees (0-10%)
 - `setFeeWallets(wallet1, wallet2)` - Update fee recipients
 - `setFeeExemption(address, bool)` - Exempt from fees
@@ -124,9 +123,9 @@ You need **8 different wallet addresses**:
 
 ### 🎯 Core Tokenomics
 - **Fixed Supply:** 100M TREZA tokens
-- **Transfer Fees:** 4% initial (adjustable 0-10%)
+- **Transfer Fees:** 5% initial (adjustable 0-10%)
 - **Dual Treasury:** 50/50 fee split
-- **Governance:** TimelockController integration
+- **Ownership:** Direct ownership (governance can be added later)
 
 ### 🛡️ Anti-Sniping Features
 - **Whitelist Control:** Complete trading access control
@@ -207,9 +206,10 @@ npx hardhat run scripts/verify.ts --network sepolia
 - **NEVER commit private keys to git**
 - **Always test on Sepolia before mainnet**
 - **Verify contract on Etherscan after deployment**
-- **Keep governance keys secure and distributed**
+- **Keep owner private key secure (you control everything)**
 - **Test all anti-sniping features before launch**
 - **Have emergency procedures ready**
+- **Consider transferring to multisig after launch for shared control**
 
 ---
 
