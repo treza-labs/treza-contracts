@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/governance/TimelockController.sol";
 
 /// @title TrezaToken with Anti-Sniping Protection
 /// @author Treza Labs
@@ -44,8 +43,6 @@ contract TrezaToken is ERC20, Ownable {
     /// @notice Maximum allowed fee percentage
     uint256 public constant MAX_FEE_PERCENTAGE = 10;  // 10%
 
-    /// @notice Timelock controller for decentralized ownership
-    TimelockController public timelockController;
 
     // =========================================================================
     // ANTI-SNIPING & LAUNCH CONTROL VARIABLES
@@ -110,7 +107,6 @@ contract TrezaToken is ERC20, Ownable {
         address cexListingWallet;
         address treasury1;
         address treasury2;
-        uint256 timelockDelay;
     }
 
     // =========================================================================
@@ -131,8 +127,6 @@ contract TrezaToken is ERC20, Ownable {
     /// @dev Emitted when the fee percentage is updated
     event FeePercentageUpdated(uint256 oldFee, uint256 newFee);
 
-    /// @dev Emitted when timelock controller is deployed and ownership transferred
-    event TimelockControllerSet(address indexed timelock);
 
     // Anti-sniping events
     event WhitelistModeToggled(bool enabled);
@@ -146,19 +140,14 @@ contract TrezaToken is ERC20, Ownable {
     event PublicTradingStarted(uint256 timestamp);
 
     /// @param params Struct containing all constructor parameters
-    /// @param proposers Array of addresses that can propose timelock operations
-    /// @param executors Array of addresses that can execute timelock operations
     constructor(
-        ConstructorParams memory params,
-        address[] memory proposers,
-        address[] memory executors
+        ConstructorParams memory params
     )
         ERC20("Treza Token", "TREZA")
         Ownable(msg.sender)
     {
         _validateAddresses(params);
         _validateTreasuryWallets(params.treasury1, params.treasury2);
-        _validateTimelockParams(params.timelockDelay, proposers, executors);
         
         // Initialize fee percentage to 5%
         currentFeePercentage = 5;
@@ -167,7 +156,6 @@ contract TrezaToken is ERC20, Ownable {
         _setupTreasuryWallets(params.treasury1, params.treasury2);
         _setupInitialWhitelist(params);
         _setupAntiSniperPhases();
-        _setupTimelock(proposers, executors, params.timelockDelay);
     }
 
     /// @dev Validates that all required addresses are not zero
@@ -193,28 +181,6 @@ contract TrezaToken is ERC20, Ownable {
         );
     }
 
-    /// @dev Validates timelock parameters for security
-    function _validateTimelockParams(
-        uint256 delay,
-        address[] memory proposers,
-        address[] memory executors
-    ) private pure {
-        // SECURITY: Ensure reasonable timelock delay (1 hour to 30 days)
-        require(delay >= 3600, "Treza: timelock delay too short"); // Min 1 hour
-        require(delay <= 2592000, "Treza: timelock delay too long"); // Max 30 days
-        
-        // SECURITY: Ensure governance participants exist
-        require(proposers.length > 0, "Treza: no proposers provided");
-        require(executors.length > 0, "Treza: no executors provided");
-        
-        // SECURITY: Validate no zero addresses in governance
-        for (uint256 i = 0; i < proposers.length; i++) {
-            require(proposers[i] != address(0), "Treza: zero proposer address");
-        }
-        for (uint256 i = 0; i < executors.length; i++) {
-            require(executors[i] != address(0), "Treza: zero executor address");
-        }
-    }
 
     /// @dev Mints initial token allocations
     function _mintInitialAllocations(ConstructorParams memory params) private {
@@ -295,17 +261,6 @@ contract TrezaToken is ERC20, Ownable {
         });
     }
 
-    /// @dev Sets up timelock controller
-    function _setupTimelock(
-        address[] memory proposers, 
-        address[] memory executors, 
-        uint256 delay
-    ) private {
-        TimelockController timelock = new TimelockController(delay, proposers, executors, msg.sender);
-        timelockController = timelock;
-        _transferOwnership(address(timelock));
-        emit TimelockControllerSet(address(timelock));
-    }
 
     // =========================================================================
     // LAUNCH CONTROL FUNCTIONS (OWNER ONLY)
