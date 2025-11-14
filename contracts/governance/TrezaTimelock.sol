@@ -1,52 +1,31 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/governance/TimelockController.sol";
 
-/// @title TrezaTimelock
-/// @author Treza Labs
-/// @notice TimelockController for Treza token governance
-/// @dev Provides time-delayed execution of governance proposals
+/**
+ * @title TrezaTimelock
+ * @dev TimelockController for Treza governance with configurable delays
+ * 
+ * This contract acts as a timelock for governance proposals, ensuring that
+ * all changes have a delay period for community review and response.
+ */
 contract TrezaTimelock is TimelockController {
-    /// @notice Deploy the timelock with specified parameters
-    /// @param minDelay Minimum delay in seconds before execution (recommended: 86400 = 24 hours)
-    /// @param proposers Array of addresses that can propose operations
-    /// @param executors Array of addresses that can execute operations (use 0x0 for anyone)
-    /// @param admin Initial admin address (will be renounced after setup)
+    
+    /**
+     * @dev Constructor for TrezaTimelock
+     * @param minDelay Minimum delay for operations (in seconds)
+     * @param proposers List of addresses that can propose operations
+     * @param executors List of addresses that can execute operations (empty array = anyone can execute)
+     * @param admin Optional admin address (use zero address for no admin)
+     */
     constructor(
         uint256 minDelay,
         address[] memory proposers,
         address[] memory executors,
         address admin
     ) TimelockController(minDelay, proposers, executors, admin) {
-        // Constructor automatically sets up roles via parent contract
-        // Admin should renounce TIMELOCK_ADMIN_ROLE after setup for full decentralization
-    }
-
-    /// @notice Get the minimum delay for operations
-    /// @return The minimum delay in seconds
-    function getMinDelay() external view returns (uint256) {
-        return getMinDelay();
-    }
-
-    /// @notice Check if an operation is ready for execution
-    /// @param id The operation identifier
-    /// @return True if the operation is ready
-    function isOperationReady(bytes32 id) external view returns (bool) {
-        return isOperationReady(id);
-    }
-
-    /// @notice Check if an operation is pending
-    /// @param id The operation identifier  
-    /// @return True if the operation is pending
-    function isOperationPending(bytes32 id) external view returns (bool) {
-        return isOperationPending(id);
-    }
-
-    /// @notice Get the timestamp when an operation becomes ready
-    /// @param id The operation identifier
-    /// @return The timestamp when ready for execution
-    function getTimestamp(bytes32 id) external view returns (uint256) {
-        return getTimestamp(id);
+        // TimelockController handles all the logic
+        // This contract just provides a named deployment
     }
 }
