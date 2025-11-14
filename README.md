@@ -18,7 +18,9 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 - **Compliance Contracts** (`contracts/compliance/`)
   - Zero-knowledge identity verification using ZKPassport
   - Privacy-preserving KYC/AML compliance
-  - Integration with zkVerify for on-chain proof verification
+  - Production zkVerify integration with Oracle and Attestation systems
+  - Multi-tier verification: Oracle (automated) + Attestation (professional)
+  - Hybrid verification routing based on transaction value and risk
 
 - **Governance Contracts** (`contracts/governance/`)
   - Decentralized governance with timelock controls
@@ -27,10 +29,12 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 
 ### Key Features
 
-🛡️ **Privacy-First Compliance**
-- Zero-knowledge identity verification
+🛡️ **Production zkVerify Integration**
+- Zero-knowledge identity verification with ZKPassport
+- Oracle system: Fast, automated verification for high-volume transactions
+- Attestation system: Professional oversight for high-value transactions
+- Hybrid routing: Smart verification based on transaction requirements
 - No personal data stored on-chain
-- Regulatory compliance without sacrificing privacy
 
 🚀 **Fair Launch Protection**
 - Multi-phase anti-sniping mechanisms
@@ -72,12 +76,22 @@ npx hardhat test
 
 ### Deployment
 
+#### Basic Deployment
 ```bash
-# Deploy to testnet
+# Deploy core contracts to testnet
 npx hardhat run scripts/deploy.ts --network sepolia
 
 # Verify contracts
 npx hardhat run scripts/verify.ts --network sepolia
+```
+
+#### zkVerify Production Systems
+```bash
+# Deploy zkVerify Oracle and Attestation systems
+npx hardhat run scripts/compliance/deploy-zkverify-systems.ts --network sepolia
+
+# Deploy compliance contracts only
+npx hardhat run scripts/compliance/deploy-compliance-contracts.ts --network sepolia
 ```
 
 ## 📚 Documentation
@@ -86,11 +100,37 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 All contracts expose clean, well-documented interfaces:
 
+#### Core Interfaces
 - [`ITreza`](contracts/token/interfaces/ITreza.sol) - Main token interface
 - [`IZKPassportVerifier`](contracts/compliance/interfaces/IZKPassportVerifier.sol) - Compliance verification
 - [`IComplianceIntegration`](contracts/compliance/interfaces/IComplianceIntegration.sol) - Integration layer
 
-### Integration Guides
+#### zkVerify Production Systems
+- [`IZKVerifyOracle`](contracts/compliance/interfaces/IZKVerifyOracle.sol) - Oracle system interface
+- [`IAttestationSystem`](contracts/compliance/interfaces/IAttestationSystem.sol) - Professional attestation interface
+
+### zkVerify Integration Features
+
+#### 🤖 Oracle System (`ZKVerifyOracle.sol`)
+- **Multi-Oracle Consensus**: Multiple authorized oracles for redundancy
+- **Signature Verification**: Cryptographic proof of zkVerify results
+- **Time-Based Validity**: Automatic expiration of old verifications
+- **Gas Optimized**: Efficient storage and retrieval of verification results
+
+#### 👨‍💼 Attestation System (`AttestationSystem.sol`)
+- **Professional Attesters**: KYC'd institutional and individual attesters
+- **Tier-Based Access**: Bronze, Silver, Gold, Platinum attester levels
+- **Staking Mechanism**: Economic incentives for honest attestation
+- **Slashing Protection**: Penalties for incorrect attestations
+- **Metadata Support**: Rich context for attestation decisions
+
+#### 🔄 Hybrid Verification (`ZKPassportVerifier.sol`)
+- **Smart Routing**: Automatic selection between Oracle and Attestation
+- **Value-Based Logic**: High-value transactions → Attestation, High-volume → Oracle
+- **Fallback Modes**: Graceful degradation when systems are unavailable
+- **Admin Controls**: Runtime configuration of verification strategies
+
+### Available Documentation
 
 For comprehensive documentation, see the [`docs/`](docs/) directory:
 
@@ -100,12 +140,6 @@ For comprehensive documentation, see the [`docs/`](docs/) directory:
 - [Stealth Wallet Proposal](docs/STEALTH_WALLET_PROPOSAL.md) - Privacy-focused wallet system
 - [Governance Migration Guide](docs/GOVERNANCE_MIGRATION_GUIDE.md) - Migration instructions
 - [Governance Roles](docs/GOVERNANCE_ROLES.md) - Role-based access control
-
-### Integration Guides
-
-- [Compliance Integration Guide](docs/COMPLIANCE_INTEGRATION.md)
-- [Governance Integration Guide](docs/GOVERNANCE_INTEGRATION.md)
-- [Anti-Sniping Configuration](docs/ANTI_SNIPE_GUIDE.md)
 
 ## 🔧 Development
 
@@ -118,14 +152,27 @@ contracts/
 │   └── *.sol              # Implementation contracts
 ├── compliance/             # Privacy compliance system
 │   ├── interfaces/         # Compliance interfaces
-│   └── *.sol              # ZKPassport integration
+│   │   ├── IZKPassportVerifier.sol
+│   │   ├── IZKVerifyOracle.sol
+│   │   └── IAttestationSystem.sol
+│   ├── ZKPassportVerifier.sol      # Main compliance contract
+│   ├── ZKVerifyOracle.sol          # Oracle consensus system
+│   ├── AttestationSystem.sol       # Professional attestation system
+│   └── TrezaComplianceIntegration.sol
 ├── governance/             # DAO governance contracts
 └── utils/                  # Utility contracts
 
-scripts/                    # Deployment and utility scripts
-test/                      # Contract tests
-circuits/                  # Zero-knowledge circuits
-deployments/               # Deployment artifacts
+scripts/
+├── compliance/             # zkVerify deployment scripts
+│   ├── deploy-compliance-contracts.ts
+│   └── deploy-zkverify-systems.ts
+└── *.ts                   # Other deployment scripts
+
+test/
+├── compliance/             # Compliance system tests
+│   ├── ZKPassportVerifier.test.ts
+│   └── ZKVerifyOracle.test.ts
+└── *.test.ts              # Other contract tests
 ```
 
 ### Environment Setup
