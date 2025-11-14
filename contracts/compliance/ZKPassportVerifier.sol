@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interfaces/IZKPassportVerifier.sol";
+import "./interfaces/IZKVerifyOracle.sol";
+import "./interfaces/IAttestationSystem.sol";
 
 /**
  * @title ZKPassportVerifier
@@ -38,11 +40,20 @@ contract ZKPassportVerifier is IZKPassportVerifier, Ownable, ReentrancyGuard {
     /// @notice Mapping for quick country lookup
     mapping(string => bool) private isCountryAllowedMapping;
 
-    /// @notice zkVerify contract address for proof verification
+    /// @notice zkVerify contract address for proof verification (deprecated)
     address public zkVerifyContract;
+
+    /// @notice zkVerify Oracle contract for automated verification
+    IZKVerifyOracle public zkVerifyOracle;
+
+    /// @notice Attestation System contract for manual verification
+    IAttestationSystem public attestationSystem;
 
     /// @notice Authorized verifier addresses (can submit proofs)
     mapping(address => bool) public authorizedVerifiers;
+
+    /// @notice Verification mode: 0=fallback, 1=oracle, 2=attestation, 3=hybrid
+    uint256 public verificationMode;
 
     /// @notice Total number of verified users
     uint256 public totalVerifiedUsers;
@@ -54,6 +65,9 @@ contract ZKPassportVerifier is IZKPassportVerifier, Ownable, ReentrancyGuard {
     event AuthorizedVerifierAdded(address indexed verifier);
     event AuthorizedVerifierRemoved(address indexed verifier);
     event ZKVerifyContractUpdated(address indexed oldContract, address indexed newContract);
+    event ZKVerifyOracleUpdated(address indexed oldOracle, address indexed newOracle);
+    event AttestationSystemUpdated(address indexed oldSystem, address indexed newSystem);
+    event VerificationModeUpdated(uint256 oldMode, uint256 newMode);
     // Note: RequirementsUpdated event is defined in the interface
     event ProofValidityPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
 
@@ -81,6 +95,7 @@ contract ZKPassportVerifier is IZKPassportVerifier, Ownable, ReentrancyGuard {
         string[] memory _allowedCountries
     ) Ownable(msg.sender) {
         zkVerifyContract = _zkVerifyContract;
+        verificationMode = 0; // Start in fallback mode
         
         // Set initial allowed countries
         _updateAllowedCountries(_allowedCountries);
@@ -292,6 +307,41 @@ contract ZKPassportVerifier is IZKPassportVerifier, Ownable, ReentrancyGuard {
         emit AuthorizedVerifierRemoved(verifier);
     }
 
+    /**
+     * @dev Update zkVerify Oracle contract
+     * @param _zkVerifyOracle New zkVerify Oracle contract address
+     */
+    function updateZKVerifyOracle(address _zkVerifyOracle) external onlyOwner {
+        address oldOracle = address(zkVerifyOracle);
+        zkVerifyOracle = IZKVerifyOracle(_zkVerifyOracle);
+        
+        emit ZKVerifyOracleUpdated(oldOracle, _zkVerifyOracle);
+    }
+
+    /**
+     * @dev Update Attestation System contract
+     * @param _attestationSystem New Attestation System contract address
+     */
+    function updateAttestationSystem(address _attestationSystem) external onlyOwner {
+        address oldSystem = address(attestationSystem);
+        attestationSystem = IAttestationSystem(_attestationSystem);
+        
+        emit AttestationSystemUpdated(oldSystem, _attestationSystem);
+    }
+
+    /**
+     * @dev Update verification mode
+     * @param _verificationMode New verification mode (0=fallback, 1=oracle, 2=attestation, 3=hybrid)
+     */
+    function updateVerificationMode(uint256 _verificationMode) external onlyOwner {
+        require(_verificationMode <= 3, "Invalid verification mode");
+        
+        uint256 oldMode = verificationMode;
+        verificationMode = _verificationMode;
+        
+        emit VerificationModeUpdated(oldMode, _verificationMode);
+    }
+
     // =========================================================================
     // INTERNAL FUNCTIONS
     // =========================================================================
@@ -314,22 +364,52 @@ contract ZKPassportVerifier is IZKPassportVerifier, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Verify ZK proof with zkVerify contract
+     * @dev Verify ZK proof using production verification systems
      * @param proofHash Hash of the proof to verify
      * @return valid True if proof is valid
      */
     function _verifyZKProof(bytes32 proofHash) internal view returns (bool) {
-        // Simplified verification - in production, this would call zkVerify contract
-        // For now, we assume the proof is valid if it's submitted by an authorized verifier
+        // Production verification modes:
+        // 0 = Fallback (authorized verifiers only)
+        // 1 = Oracle only
+        // 2 = Attestation only  
+        // 3 = Hybrid (oracle for low-value, attestation for high-value)
         
-        if (zkVerifyContract == address(0)) {
-            return true; // Skip verification if no zkVerify contract set
+        if (verificationMode == 0) {
+            // Fallback mode: authorized verifiers only
+            return authorizedVerifiers[msg.sender] || msg.sender == owner();
         }
         
-        // In a real implementation, this would call:
-        // return IZKVerify(zkVerifyContract).verifyProof(proofHash);
+        if (verificationMode == 1) {
+            // Oracle mode: check zkVerify oracle
+            if (address(zkVerifyOracle) != address(0)) {
+                return zkVerifyOracle.isProofVerified(proofHash);
+            }
+            return false;
+        }
         
-        // For now, return true for authorized verifiers
+        if (verificationMode == 2) {
+            // Attestation mode: check attestation system
+            if (address(attestationSystem) != address(0)) {
+                return attestationSystem.isProofAttested(proofHash, IAttestationSystem.AttestationLevel.BASIC);
+            }
+            return false;
+        }
+        
+        if (verificationMode == 3) {
+            // Hybrid mode: try oracle first, then attestation
+            if (address(zkVerifyOracle) != address(0) && zkVerifyOracle.isProofVerified(proofHash)) {
+                return true;
+            }
+            
+            if (address(attestationSystem) != address(0)) {
+                return attestationSystem.isProofAttested(proofHash, IAttestationSystem.AttestationLevel.BASIC);
+            }
+            
+            return false;
+        }
+        
+        // Default fallback
         return authorizedVerifiers[msg.sender] || msg.sender == owner();
     }
 
