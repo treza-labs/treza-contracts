@@ -1,288 +1,206 @@
-# TREZA Token
+# TREZA Smart Contracts
 
-## Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Solidity](https://img.shields.io/badge/Solidity-^0.8.19-blue)](https://soliditylang.org/)
+[![Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-yellow)](https://hardhat.org/)
 
-TREZA Token is an ERC20 token with anti-sniping protection, dynamic fee collection, and launch management capabilities. The contract includes whitelist controls and governance features designed for fair token launches.
+Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure with zero-knowledge compliance technology.
 
----
+## 🏗️ Architecture
 
-## 🔥 Key Features
+### Core Contracts
 
-### 🛡️ Anti-Sniping Protection
+- **Token Contracts** (`contracts/token/`)
+  - ERC20 token implementation with advanced features
+  - Anti-sniping protection and fair launch mechanisms
+  - Dynamic fee structures and treasury management
 
-**🚀 Time-Based Anti-Sniper Launch Mechanism:**
-- **Private Period:** 0% fee, no max wallet (whitelist only)
-- **Phase 1 (0-1 min):** 40% fee, 0.10% max wallet (100K TREZA)
-- **Phase 2 (1-5 min):** 30% fee, 0.15% max wallet (150K TREZA)
-- **Phase 3 (5-8 min):** 20% fee, 0.20% max wallet (200K TREZA)
-- **Phase 4 (8-15 min):** 10% fee, 0.30% max wallet (300K TREZA)
-- **After 15 min:** Normal 5% fee, no max wallet limit
+- **Compliance Contracts** (`contracts/compliance/`)
+  - Zero-knowledge identity verification using ZKPassport
+  - Privacy-preserving KYC/AML compliance
+  - Integration with zkVerify for on-chain proof verification
 
-**Traditional Bot Protection Features:**
-- **Whitelist-only trading periods** - Only approved addresses can trade initially
-- **Transfer cooldown protection** - 1-second minimum between transactions
-- **3-block anti-bot protection** - Enhanced protection after trading enabled
-- **Emergency blacklist capability** - Block malicious addresses instantly
-- **Complete launch control** - Master trading enable/disable
+- **Governance Contracts** (`contracts/governance/`)
+  - Decentralized governance with timelock controls
+  - Token-weighted voting with compliance integration
+  - Proposal execution and treasury management
 
-### 💰 Tokenomics
+### Key Features
 
-**Fixed Supply & Allocations:**
-- **Total Supply:** 100 million TREZA tokens (fixed)
-- **Initial Liquidity:** 35% (35M TREZA)
-- **Team:** 20% (20M TREZA)  
-- **Treasury:** 20% (20M TREZA)
-- **Partnerships & Grants:** 10% (10M TREZA)
-- **R&D:** 5% (5M TREZA)
-- **Marketing & Operations:** 10% (10M TREZA)
+🛡️ **Privacy-First Compliance**
+- Zero-knowledge identity verification
+- No personal data stored on-chain
+- Regulatory compliance without sacrificing privacy
 
-**Dynamic Fee System:**
-- **Private Period:** 0% on all transfers (whitelist-only trading)
-- **Public Launch Fees:** 40% → 30% → 20% → 10% → 5% (first 15 minutes)
-- **Normal Fee:** 5% on all transfers (after anti-sniper period)
-- **Adjustable Range:** 0-10% (governance controlled)
-- **Dual Treasury:** 50/50 split between two treasury wallets
-- **Fee Exemptions:** Treasury wallets and whitelisted addresses exempt
+🚀 **Fair Launch Protection**
+- Multi-phase anti-sniping mechanisms
+- Time-based fee structures
+- Maximum wallet limits during launch
 
-### 🏛️ Decentralized Governance
+🏛️ **Decentralized Governance**
+- Community-driven decision making
+- Timelock-protected critical functions
+- Compliance-weighted voting power
 
-**TimelockController Integration:**
-- **Automatic deployment** of OpenZeppelin TimelockController
-- **Ownership transfer** to timelock for decentralized control
-- **Proposal and execution** roles for governance actions
-- **Time delays** for all critical changes
-- **On-chain governance** with full transparency
+## 🚀 Quick Start
 
----
+### Prerequisites
 
-## 🚀 Launch Management System
+- Node.js v16+ 
+- npm or yarn
+- Git
 
-### Phase 1: Pre-Launch (Safe Deployment)
-- ❌ **Trading disabled** by default
-- ✅ **Whitelist-only mode** active
+### Installation
 
-- ✅ **All allocation wallets pre-whitelisted**
-
-### Phase 2: Controlled Launch
-- 📝 **Add trusted addresses** to whitelist (DEX, team, early supporters)
-- 🏊 **Add initial liquidity** (only whitelisted addresses can participate)
-- 🚀 **Enable trading** when ready (anti-bot protection activates)
-
-### Phase 3: Public Launch
-- 🌍 **Disable whitelist mode** for public access
-- 📊 **Monitor and adjust** as needed
-
-
----
-
-## 🔧 Management Functions
-
-### Launch Control
-```solidity
-setTradingEnabled(bool)              // Master trading switch
-setWhitelistMode(bool)               // Whitelist-only mode
-
-```
-
-### Whitelist Management
-```solidity
-setWhitelist(address[], bool)        // Manage whitelist
-isWhitelisted(address)               // Check whitelist status
-```
-
-
-
-### Emergency Controls
-```solidity
-setBlacklist(address[], bool)        // Emergency blacklist
-setAntiSniperConfig(uint256, uint256) // Adjust protection parameters
-```
-
-### Fee Management
-```solidity
-setFeePercentage(uint256)            // Adjust manual fees (0-10%)
-setFeeWallets(address, address)      // Update treasury wallets
-setFeeExemption(address, bool)       // Manage fee exemptions
-getCurrentFee()                      // View current fee (time-based or manual)
-```
-
-### Time-Based Anti-Sniper Management
-```solidity
-setTimeBasedAntiSniper(bool)         // Enable/disable time-based system
-setAntiSniperPhases(phases)          // Update phase configurations
-getAntiSniperStatus()                // Get current phase, fee, max wallet, time remaining
-getCurrentMaxWallet()                // View current max wallet limit
-getAntiSniperPhase(uint256)          // Get specific phase configuration
-startPublicTradingTimer()            // Manually start anti-sniper countdown
-```
-
-### Status Checking
-```solidity
-getLaunchStatus()                    // Get all launch parameters
-canTrade(address)                    // Check if address can trade
-```
-
----
-
-## 🎯 Anti-Bot Protection Details
-
-### Whitelist System
-- **Pre-approved trading** during launch phase
-- **Prevents bot sniping** at token launch
-- **Controlled access** for fair distribution
-
-
-
-### Cooldown Protection
-- **1-second minimum** between transactions per address
-- **Prevents spam trading** and bot attacks
-- **Whitelisted addresses exempt** from cooldown
-
-### Anti-Bot Blocks
-- **3-block protection** after trading enabled
-- **Additional protection** during initial trading activation
-- **Only whitelisted addresses** can trade during this period
-
-### Emergency Controls
-- **Instant blacklisting** of malicious addresses
-- **Configurable protection parameters**
-- **Emergency pause capabilities**
-
----
-
-## 💸 Fee Distribution Flow
-
-1. **Transfer initiated** between addresses
-2. **Check trading mode** (whitelist-only vs public trading)
-3. **Check exemptions** (treasury wallets, whitelisted addresses)  
-4. **Check max wallet limits** (if time-based anti-sniper enabled and public trading)
-5. **Apply current fee:**
-   - **Private Period:** 0% (whitelist-only trading)
-   - **Public Trading:** 40%→30%→20%→10%→5% (time-based) OR manual fee
-6. **Split fees 50/50** between treasury wallets (if fees apply)
-7. **Transfer remaining** amount to recipient
-
-**Fee Exemptions & Max Wallet Bypasses:**
-- Treasury wallets (automatic exemption from fees and max wallet)
-- Whitelisted addresses (configurable exemption from max wallet)
-- Private period (0% fees for all transactions during whitelist mode)
-
----
-
-## 🔒 Security & Best Practices
-
-### Built-in Security
-- **OpenZeppelin libraries** (audited and tested)
-- **SafeERC20** for secure token transfers
-- **Address validation** prevents zero-address errors
-- **Unique treasury validation** ensures distinct wallets
-- **Comprehensive event logging** for transparency
-
-### Gas Optimization
-- **Struct-based parameters** avoid stack depth issues
-- **Modular internal functions** for code reuse
-- **Early returns** when fees don't apply
-- **Optimized fee calculations** with proper remainder handling
-
-### Governance Security
-- **TimelockController** prevents rushed decisions
-- **Multi-signature capable** through proposer/executor roles
-- **Time delays** for all critical changes
-- **Transparent on-chain execution**
-
----
-
-## 📊 Technical Specifications
-
-### Contract Architecture
-- **TrezaToken:** Main ERC20 contract with anti-sniping features
-- **TimelockController:** Governance and ownership management
-- **Modular design** for maintainability and upgrades
-
-### Default Configuration
-- **Trading:** Disabled (manual activation required)
-- **Whitelist Mode:** Enabled (public trading disabled)
-- **Time-Based Anti-Sniper:** Enabled (dynamic fees and max wallet)
-- **Transfer Cooldown:** 1 second
-- **Anti-Bot Protection:** 3 blocks
-- **Normal Fee:** 5% (after anti-sniper period)
-
-### Time-Based Anti-Sniper Configuration
-- **Private Period:** 0% fee, no max wallet (whitelist-only trading)
-- **Phase 1 (0-1 min public):** 40% fee, 100,000 TREZA max wallet (0.10%)
-- **Phase 2 (1-5 min public):** 30% fee, 150,000 TREZA max wallet (0.15%)
-- **Phase 3 (5-8 min public):** 20% fee, 200,000 TREZA max wallet (0.20%)
-- **Phase 4 (8-15 min public):** 10% fee, 300,000 TREZA max wallet (0.30%)
-- **Normal (15+ min public):** 5% fee, no max wallet limit
-
----
-
-## 🚀 Deployment
-
-### Quick Deploy
 ```bash
-# 1. Update addresses in scripts/deploy.ts
-# 2. Deploy with anti-sniping protection
+git clone https://github.com/treza-labs/treza-contracts.git
+cd treza-contracts
+npm install
+```
+
+### Compilation
+
+```bash
+npx hardhat compile
+```
+
+### Testing
+
+```bash
+npx hardhat test
+```
+
+### Deployment
+
+```bash
+# Deploy to testnet
 npx hardhat run scripts/deploy.ts --network sepolia
 
-# 3. Verify on Etherscan  
+# Verify contracts
 npx hardhat run scripts/verify.ts --network sepolia
 ```
 
-### Requirements
-- **8 unique wallet addresses** for allocations and governance
-- **Sepolia ETH** for deployment gas
-- **RPC provider** (Alchemy, Infura, QuickNode)
-- **Etherscan API key** for verification
-
----
-
 ## 📚 Documentation
 
-- **`DEPLOYMENT_GUIDE.md`** - Complete deployment instructions
-- **`ANTI_SNIPE_GUIDE.md`** - Detailed anti-sniping management guide
-- **Smart Contract Comments** - Inline documentation in Solidity code
+### Contract Interfaces
 
----
+All contracts expose clean, well-documented interfaces:
 
-## Key Differences
+- [`ITreza`](contracts/token/interfaces/ITreza.sol) - Main token interface
+- [`IZKPassportVerifier`](contracts/compliance/interfaces/IZKPassportVerifier.sol) - Compliance verification
+- [`IComplianceIntegration`](contracts/compliance/interfaces/IComplianceIntegration.sol) - Integration layer
 
-### Compared to Standard ERC20 Tokens
-- ❌ **Standard:** Vulnerable to bot sniping
-- ✅ **TREZA:** Comprehensive anti-sniping protection with time-based deterrents
+### Integration Guides
 
-### Compared to Basic Fee Tokens  
-- ❌ **Basic:** Simple percentage fees
-- ✅ **TREZA:** Free private trading + time-based dynamic fees (0%→40%→5%) + dual treasury + governance
+For comprehensive documentation, see the [`docs/`](docs/) directory:
 
-### Compared to Manual Launch Tokens
-- ❌ **Manual:** Prone to human error and rushed launches
-- ✅ **TREZA:** Automated 15-minute anti-sniper system with graduated protection
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Complete deployment instructions
+- [Anti-Snipe Guide](docs/ANTI_SNIPE_GUIDE.md) - MEV protection system details
+- [Governance System](docs/GOVERNANCE_CONTRACTS_README.md) - DAO governance documentation
+- [Stealth Wallet Proposal](docs/STEALTH_WALLET_PROPOSAL.md) - Privacy-focused wallet system
+- [Governance Migration Guide](docs/GOVERNANCE_MIGRATION_GUIDE.md) - Migration instructions
+- [Governance Roles](docs/GOVERNANCE_ROLES.md) - Role-based access control
 
-### Compared to Simple Anti-Bot Tokens
-- ❌ **Simple:** Basic blacklist or cooldown only
-- ✅ **TREZA:** Multi-layered protection: time-based fees + max wallet + whitelist + cooldown + blacklist
+### Integration Guides
 
----
+- [Compliance Integration Guide](docs/COMPLIANCE_INTEGRATION.md)
+- [Governance Integration Guide](docs/GOVERNANCE_INTEGRATION.md)
+- [Anti-Sniping Configuration](docs/ANTI_SNIPE_GUIDE.md)
 
-## Summary
+## 🔧 Development
 
-TREZA Token provides:
-- 🛡️ **Most comprehensive bot protection available** with time-based anti-sniper system
-- 🆓 **Free private trading** for trusted early supporters (0% fees)
-- 💰 **Dynamic tokenomics** with graduated fees (0%→40%→30%→20%→10%→5%)
-- 🚀 **Automated launch protection** across 4 phases over 15 minutes
-- 🏛️ **Decentralized governance** with timelock controller
-- 🔒 **Multi-layered security** features
-- ⚖️ **Fair launch system** that rewards patience and deters manipulation
+### Project Structure
 
-Ready for deployment with the most advanced anti-sniping protection in DeFi.
+```
+contracts/
+├── token/                  # ERC20 token contracts
+│   ├── interfaces/         # Public interfaces
+│   └── *.sol              # Implementation contracts
+├── compliance/             # Privacy compliance system
+│   ├── interfaces/         # Compliance interfaces
+│   └── *.sol              # ZKPassport integration
+├── governance/             # DAO governance contracts
+└── utils/                  # Utility contracts
 
----
+scripts/                    # Deployment and utility scripts
+test/                      # Contract tests
+circuits/                  # Zero-knowledge circuits
+deployments/               # Deployment artifacts
+```
 
-## 📞 Documentation
+### Environment Setup
 
-- **Hardhat Documentation:** https://hardhat.org/docs
-- **OpenZeppelin Contracts:** https://docs.openzeppelin.com
-- **Etherscan:** https://sepolia.etherscan.io
-- **Treza Labs** https://docs.trezalabs.com
+1. Copy environment template:
+```bash
+cp .env.example .env
+```
+
+2. Configure your environment variables:
+```bash
+# Network configuration
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/your-api-key
+MAINNET_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/your-api-key
+
+# Deployment keys (use test keys for development)
+PRIVATE_KEY=your-private-key
+
+# API keys
+ETHERSCAN_API_KEY=your-etherscan-api-key
+COINMARKETCAP_API_KEY=your-coinmarketcap-api-key
+```
+
+### Testing
+
+Run the full test suite:
+```bash
+npm test
+```
+
+Run specific tests:
+```bash
+npx hardhat test test/TrezaToken.test.ts
+```
+
+Generate coverage report:
+```bash
+npm run coverage
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
+
+### Code Standards
+
+- Follow Solidity style guide
+- Add comprehensive NatSpec documentation
+- Include unit tests for all functions
+- Use meaningful variable and function names
+
+
+### Pre-Deployment
+Before deploying to mainnet, complete the [Pre-Deployment Checklist](docs/PRE_DEPLOYMENT_CHECKLIST.md).
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- **Website**: [trezalabs.com](https://trezalabs.com)
+- **Documentation**: [docs.trezalabs.com](https://docs.trezalabs.com)
+- **SDK**: [@treza/sdk](https://www.npmjs.com/package/@treza/sdk)
+- **Twitter**: [@trezalabs](https://twitter.com/trezalabs)
+
+## ⚠️ Disclaimer
+
+This software is provided "as is", without warranty of any kind. Use at your own risk. The contracts have not yet been audited - please exercise caution when using in production environments.
