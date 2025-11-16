@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import type { ContractTransactionResponse } from "ethers";
 
 interface DeploymentConfig {
     // Oracle configuration
@@ -95,9 +95,9 @@ async function main() {
         gasLimit: config.gasLimit ? BigInt(config.gasLimit) : undefined,
     };
     
-    let zkVerifyOracle: Contract;
-    let attestationSystem: Contract;
-    let zkPassportVerifier: Contract | null = null;
+    let zkVerifyOracle: any;
+    let attestationSystem: any;
+    let zkPassportVerifier: any = null;
     
     try {
         // 1. Deploy ZKVerifyOracle
