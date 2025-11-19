@@ -6,7 +6,7 @@
 
 Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure with zero-knowledge compliance technology.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Contracts
 
@@ -29,24 +29,24 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 
 ### Key Features
 
-🛡️ **Production zkVerify Integration**
+**Production zkVerify Integration**
 - Zero-knowledge identity verification with ZKPassport
 - Oracle system: Fast, automated verification for high-volume transactions
 - Attestation system: Professional oversight for high-value transactions
 - Hybrid routing: Smart verification based on transaction requirements
 - No personal data stored on-chain
 
-🚀 **Fair Launch Protection**
+**Fair Launch Protection**
 - Multi-phase anti-sniping mechanisms
 - Time-based fee structures
 - Maximum wallet limits during launch
 
-🏛️ **Decentralized Governance**
+**Decentralized Governance**
 - Community-driven decision making
 - Timelock-protected critical functions
 - Compliance-weighted voting power
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -94,7 +94,7 @@ npx hardhat run scripts/compliance/deploy-zkverify-systems.ts --network sepolia
 npx hardhat run scripts/compliance/deploy-compliance-contracts.ts --network sepolia
 ```
 
-## 📚 Documentation
+## Documentation
 
 ### Contract Interfaces
 
@@ -111,20 +111,20 @@ All contracts expose clean, well-documented interfaces:
 
 ### zkVerify Integration Features
 
-#### 🤖 Oracle System (`ZKVerifyOracle.sol`)
+#### Oracle System (`ZKVerifyOracle.sol`)
 - **Multi-Oracle Consensus**: Multiple authorized oracles for redundancy
 - **Signature Verification**: Cryptographic proof of zkVerify results
 - **Time-Based Validity**: Automatic expiration of old verifications
 - **Gas Optimized**: Efficient storage and retrieval of verification results
 
-#### 👨‍💼 Attestation System (`AttestationSystem.sol`)
+#### Attestation System (`AttestationSystem.sol`)
 - **Professional Attesters**: KYC'd institutional and individual attesters
 - **Tier-Based Access**: Bronze, Silver, Gold, Platinum attester levels
 - **Staking Mechanism**: Economic incentives for honest attestation
 - **Slashing Protection**: Penalties for incorrect attestations
 - **Metadata Support**: Rich context for attestation decisions
 
-#### 🔄 Hybrid Verification (`ZKPassportVerifier.sol`)
+#### Hybrid Verification (`ZKPassportVerifier.sol`)
 - **Smart Routing**: Automatic selection between Oracle and Attestation
 - **Value-Based Logic**: High-value transactions → Attestation, High-volume → Oracle
 - **Fallback Modes**: Graceful degradation when systems are unavailable
@@ -141,7 +141,7 @@ For comprehensive documentation, see the [`docs/`](docs/) directory:
 - [Governance Migration Guide](docs/GOVERNANCE_MIGRATION_GUIDE.md) - Migration instructions
 - [Governance Roles](docs/GOVERNANCE_ROLES.md) - Role-based access control
 
-## 🔧 Development
+## Development
 
 ### Project Structure
 
@@ -213,7 +213,7 @@ Generate coverage report:
 npm run coverage
 ```
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -241,13 +241,13 @@ Before deploying to mainnet, complete the [Pre-Deployment Checklist](docs/PRE_DE
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## Links
 
 - **Website**: [trezalabs.com](https://trezalabs.com)
 - **Documentation**: [docs.trezalabs.com](https://docs.trezalabs.com)
 - **SDK**: [@treza/sdk](https://www.npmjs.com/package/@treza/sdk)
 - **Twitter**: [@trezalabs](https://twitter.com/trezalabs)
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This software is provided "as is", without warranty of any kind. Use at your own risk. The contracts have not yet been audited - please exercise caution when using in production environments.
