@@ -19,10 +19,10 @@ contract TrezaToken is ERC20, Ownable {
 ```
 
 **Benefits of current setup:**
-- ✅ Fast decision making during launch
-- ✅ No timelock delays for critical fixes
-- ✅ Simple and gas efficient
-- ✅ Easy to test and debug
+-  Fast decision making during launch
+-  No timelock delays for critical fixes
+-  Simple and gas efficient
+-  Easy to test and debug
 
 ## Migration Options
 
@@ -40,10 +40,10 @@ await trezaToken.transferOwnership(multisigAddress);
 ```
 
 **Benefits:**
-- ✅ Shared control among team members
-- ✅ Still fast execution (no timelock delays)
-- ✅ More decentralized than single owner
-- ✅ Easy to implement
+-  Shared control among team members
+-  Still fast execution (no timelock delays)
+-  More decentralized than single owner
+-  Easy to implement
 
 **Governance Process:**
 1. Team member proposes change in multisig
@@ -58,7 +58,7 @@ await trezaToken.transferOwnership(multisigAddress);
 
 **Step 1: Deploy TimelockController**
 
-✅ **Ready-to-use contract available at:** `contracts/governance/TrezaTimelock.sol`
+ **Ready-to-use contract available at:** `contracts/governance/TrezaTimelock.sol`
 
 ```bash
 # Deploy the timelock governance
@@ -69,7 +69,7 @@ The contract is already created and includes all necessary functionality.
 
 **Step 2: Configure and Deploy**
 
-✅ **Ready-to-use script available at:** `scripts/governance/deploy-timelock.ts`
+ **Ready-to-use script available at:** `scripts/governance/deploy-timelock.ts`
 
 1. **Update the proposer addresses** in the script:
 ```typescript
@@ -86,7 +86,7 @@ npx hardhat run scripts/governance/deploy-timelock.ts --network your-network
 
 **Step 3: Transfer Token Ownership**
 
-✅ **Ready-to-use script available at:** `scripts/governance/transfer-ownership.ts`
+ **Ready-to-use script available at:** `scripts/governance/transfer-ownership.ts`
 
 1. **Update addresses** in the script
 2. **Run the transfer:**
@@ -96,7 +96,7 @@ npx hardhat run scripts/governance/transfer-ownership.ts --network your-network
 
 **Step 4: Governance Process**
 
-✅ **Ready-to-use examples available:**
+ **Ready-to-use examples available:**
 
 **Propose changes:**
 ```bash
@@ -114,8 +114,8 @@ npx hardhat run scripts/governance/examples/execute-proposal.ts --network your-n
 
 **When to use:** When you want full community governance with token holder voting.
 
-✅ **All contracts ready at:** `contracts/governance/`
-✅ **Deployment script ready at:** `scripts/governance/deploy-full-dao.ts`
+ **All contracts ready at:** `contracts/governance/`
+ **Deployment script ready at:** `scripts/governance/deploy-full-dao.ts`
 
 **Step 1: Deploy Complete DAO System**
 
@@ -350,44 +350,44 @@ async function proposeAndVote() {
 ## Migration Timeline Recommendation
 
 ### Phase 1: Launch (Current)
-- ✅ **Direct ownership** for fast iteration
-- ✅ **Quick response** to issues
-- ✅ **Simple deployment**
+-  **Direct ownership** for fast iteration
+-  **Quick response** to issues
+-  **Simple deployment**
 
 ### Phase 2: Team Governance (Month 1-3)
-- 🔄 **Transfer to multisig** for shared team control
-- ✅ **Still fast execution** for critical fixes
-- ✅ **More decentralized** than single owner
+-  **Transfer to multisig** for shared team control
+-  **Still fast execution** for critical fixes
+-  **More decentralized** than single owner
 
 ### Phase 3: Timelock Governance (Month 3-6)
-- 🔄 **Deploy TimelockController**
-- 🔄 **24-hour delays** for community protection
-- ✅ **Transparent governance** with public proposals
+-  **Deploy TimelockController**
+-  **24-hour delays** for community protection
+-  **Transparent governance** with public proposals
 
 ### Phase 4: Full DAO (Month 6+)
-- 🔄 **Deploy Governor contract**
-- 🔄 **Token holder voting** on all proposals
-- ✅ **Fully decentralized** governance
+-  **Deploy Governor contract**
+-  **Token holder voting** on all proposals
+-  **Fully decentralized** governance
 
 ## Security Considerations
 
 ### Before Migration
-- ✅ **Audit governance contracts** thoroughly
-- ✅ **Test on testnet** extensively
-- ✅ **Have emergency procedures** ready
-- ✅ **Document all processes** clearly
+-  **Audit governance contracts** thoroughly
+-  **Test on testnet** extensively
+-  **Have emergency procedures** ready
+-  **Document all processes** clearly
 
 ### During Migration
-- ⚠️ **Use timelock delays** appropriately (24 hours minimum)
-- ⚠️ **Set up monitoring** for governance proposals
-- ⚠️ **Have community alerts** for important votes
-- ⚠️ **Keep emergency contacts** updated
+-  **Use timelock delays** appropriately (24 hours minimum)
+-  **Set up monitoring** for governance proposals
+-  **Have community alerts** for important votes
+-  **Keep emergency contacts** updated
 
 ### After Migration
-- 🔍 **Monitor governance activity** regularly
-- 🔍 **Engage with community** on proposals
-- 🔍 **Maintain documentation** and guides
-- 🔍 **Regular security reviews** of governance
+-  **Monitor governance activity** regularly
+-  **Engage with community** on proposals
+-  **Maintain documentation** and guides
+-  **Regular security reviews** of governance
 
 ## Emergency Procedures
 

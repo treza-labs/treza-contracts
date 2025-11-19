@@ -45,14 +45,14 @@ Stealth addresses enable recipient privacy by generating unique, one-time addres
 #### Core Contracts
 ```
 stealth/
-├── contracts/
-│   ├── StealthMetaRegistry.sol      # ERC-6538 compatible registry
-│   ├── StealthAnnouncer.sol         # Event emission for payment discovery
-│   ├── StealthPaymaster.sol         # ERC-4337 paymaster for gas sponsorship
-│   └── helpers/
-│       ├── StealthERC20Helper.sol   # ERC20 stealth payment helpers
-│       ├── StealthERC721Helper.sol  # NFT stealth transfer helpers
-│       └── StealthMultiSend.sol     # Batch stealth payments
+ contracts/
+�    StealthMetaRegistry.sol      # ERC-6538 compatible registry
+�    StealthAnnouncer.sol         # Event emission for payment discovery
+�    StealthPaymaster.sol         # ERC-4337 paymaster for gas sponsorship
+�    helpers/
+�        StealthERC20Helper.sol   # ERC20 stealth payment helpers
+�        StealthERC721Helper.sol  # NFT stealth transfer helpers
+�        StealthMultiSend.sol     # Batch stealth payments
 ```
 
 #### Registry Features (StealthMetaRegistry)
@@ -82,30 +82,30 @@ stealth/
 #### Wallet SDK
 ```
 stealth/
-├── sdk/
-│   ├── core/
-│   │   ├── StealthAddress.ts        # Core stealth address logic
-│   │   ├── KeyDerivation.ts         # Cryptographic operations
-│   │   ├── Scanner.ts               # Event scanning and detection
-│   │   └── Announcer.ts             # Payment announcement
-│   ├── wallet/
-│   │   ├── StealthWallet.ts         # Main wallet interface
-│   │   ├── AccountManager.ts        # Stealth account management
-│   │   └── TransactionBuilder.ts    # Transaction construction
-│   └── utils/
-│       ├── Crypto.ts                # Cryptographic utilities
-│       ├── EventFilter.ts           # Efficient event filtering
-│       └── GasEstimator.ts          # Gas optimization
+ sdk/
+�    core/
+�   �    StealthAddress.ts        # Core stealth address logic
+�   �    KeyDerivation.ts         # Cryptographic operations
+�   �    Scanner.ts               # Event scanning and detection
+�   �    Announcer.ts             # Payment announcement
+�    wallet/
+�   �    StealthWallet.ts         # Main wallet interface
+�   �    AccountManager.ts        # Stealth account management
+�   �    TransactionBuilder.ts    # Transaction construction
+�    utils/
+�        Crypto.ts                # Cryptographic utilities
+�        EventFilter.ts           # Efficient event filtering
+�        GasEstimator.ts          # Gas optimization
 ```
 
 #### Indexer Service
 ```
 stealth/
-├── indexer/
-│   ├── EventIndexer.ts              # Multi-chain event indexing
-│   ├── NotificationService.ts       # Push notification system
-│   ├── ViewTagOptimizer.ts          # View-tag based filtering
-│   └── PrivacyPreserver.ts          # Privacy-preserving notifications
+ indexer/
+�    EventIndexer.ts              # Multi-chain event indexing
+�    NotificationService.ts       # Push notification system
+�    ViewTagOptimizer.ts          # View-tag based filtering
+�    PrivacyPreserver.ts          # Privacy-preserving notifications
 ```
 
 ---
@@ -328,7 +328,7 @@ stealth/
 - **Integration Testing**: Cross-implementation compatibility
 
 #### Risk Mitigation
-- **Gradual Rollout**: Testnet → Limited mainnet → Full deployment
+- **Gradual Rollout**: Testnet  Limited mainnet  Full deployment
 - **Bug Bounty Program**: Incentivize security research
 - **Formal Verification**: Critical cryptographic functions
 - **Incident Response**: Plan for security issues

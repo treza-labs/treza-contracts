@@ -13,7 +13,7 @@ See `GOVERNANCE_MIGRATION_GUIDE.md` for step-by-step migration instructions.
 
 ## Understanding the Roles
 
-### Proposers 🏛️
+### Proposers 
 
 **Proposers** are addresses that have the authority to queue operations in the timelock system.
 
@@ -28,7 +28,7 @@ See `GOVERNANCE_MIGRATION_GUIDE.md` for step-by-step migration instructions.
 - Execute operations at all (that's the executor's role)
 - Bypass the timelock delay mechanism
 
-### Executors ⚡
+### Executors 
 
 **Executors** are addresses that have the authority to execute operations that have been queued and whose timelock delay has expired.
 
@@ -186,26 +186,26 @@ await trezaToken.setFeePercentage(3); // Instant change
 ## Best Practices
 
 ### For Proposers
-- ✅ Use hardware wallets or secure multisigs
-- ✅ Have multiple proposers for redundancy
-- ✅ Regularly rotate keys if needed
-- ❌ Don't use a single point of failure
-- ❌ Don't share proposer keys
+-  Use hardware wallets or secure multisigs
+-  Have multiple proposers for redundancy
+-  Regularly rotate keys if needed
+-  Don't use a single point of failure
+-  Don't share proposer keys
 
 ### For Executors
-- ✅ Consider using open execution (zero address) for decentralization
-- ✅ If using restricted execution, have multiple executors
-- ✅ Include the governance contract as an executor
-- ❌ Don't create execution bottlenecks
-- ❌ Don't rely on single executor
+-  Consider using open execution (zero address) for decentralization
+-  If using restricted execution, have multiple executors
+-  Include the governance contract as an executor
+-  Don't create execution bottlenecks
+-  Don't rely on single executor
 
 ### General Security
-- ✅ Test governance flow on testnet first
-- ✅ Document all governance addresses
-- ✅ Have emergency procedures ready
-- ✅ Regular security audits
-- ❌ Don't rush governance decisions
-- ❌ Don't skip the delay period
+-  Test governance flow on testnet first
+-  Document all governance addresses
+-  Have emergency procedures ready
+-  Regular security audits
+-  Don't rush governance decisions
+-  Don't skip the delay period
 
 ## Emergency Considerations
 
@@ -245,9 +245,9 @@ await trezaToken.setFeePercentage(3); // Instant change
 ## Summary
 
 **Current State:**
-- ✅ **Simple ownership** - you control the token directly
-- ✅ **Fast iteration** - change parameters instantly
-- ✅ **Launch ready** - no governance complexity
+-  **Simple ownership** - you control the token directly
+-  **Fast iteration** - change parameters instantly
+-  **Launch ready** - no governance complexity
 
 **Future Governance (When Ready):**
 The proposer/executor model provides a secure, transparent governance system where:

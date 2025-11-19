@@ -1,12 +1,12 @@
-# 🛡️ TREZA Anti-Sniping Protection Guide
+#  TREZA Anti-Sniping Protection Guide
 
-## 🎯 **Overview**
+##  **Overview**
 
 Your enhanced TREZA token includes comprehensive anti-sniping protection to ensure a fair launch and prevent bot attacks. This guide explains all the protection mechanisms including the **TIME-BASED ANTI-SNIPER SYSTEM** with dynamic fees and max wallet limits.
 
-## 🔥 **Anti-Sniping Features**
+## � **Anti-Sniping Features**
 
-### 🚀 **Time-Based Anti-Sniper Launch Mechanism**
+###  **Time-Based Anti-Sniper Launch Mechanism**
 - **Private Period (Whitelist Only):** 0% fee, no max wallet limits
 - **Phase 1 (0-1 min):** 40% fee, 0.10% max wallet
 - **Phase 2 (1-5 min):** 30% fee, 0.15% max wallet  
@@ -44,9 +44,9 @@ Your enhanced TREZA token includes comprehensive anti-sniping protection to ensu
 - **Purpose:** Emergency response to detected bots/bad actors
 - **Control:** `setBlacklist(address[], bool)` (owner only)
 
-## 🚀 **Fair Launch Sequence**
+##  **Fair Launch Sequence**
 
-### **Phase 1: Pre-Launch Setup** ⚙️
+### **Phase 1: Pre-Launch Setup** �
 ```solidity
 // 1. Deploy contract (trading disabled, whitelist-only)
 // 2. Add team/DEX addresses to whitelist
@@ -56,18 +56,18 @@ setWhitelist([dexRouter, liquidityWallet, teamWallet], true);
 setWhitelist([user1, user2, user3], true);
 ```
 
-### **Phase 2: Liquidity Addition** 🏊
+### **Phase 2: Liquidity Addition** 
 ```solidity
 // 4. Add initial liquidity (only whitelisted addresses can do this)
 // Your DEX addresses should be whitelisted
 // This prevents bots from front-running liquidity
 ```
 
-### **Phase 3: Private Trading** 🔒
+### **Phase 3: Private Trading** 
 ```solidity
 // 5. Enable trading (whitelisted addresses only)
 setTradingEnabled(true);
-// 🆓 PRIVATE PERIOD FEATURES:
+//  PRIVATE PERIOD FEATURES:
 // - 0% fees for all transactions
 // - No max wallet limits
 // - Only whitelisted addresses can trade
@@ -76,11 +76,11 @@ setTradingEnabled(true);
 // Monitor for any suspicious activity
 ```
 
-### **Phase 4: Public Launch** 🌍
+### **Phase 4: Public Launch** 
 ```solidity
 // 7. Disable whitelist mode (starts time-based anti-sniper protection)
 setWhitelistMode(false);
-// ⏰ TIME-BASED PROTECTION ACTIVATED:
+//  TIME-BASED PROTECTION ACTIVATED:
 // - First minute: 40% fee, 0.10% max wallet
 // - Minutes 1-5: 30% fee, 0.15% max wallet  
 // - Minutes 5-8: 20% fee, 0.20% max wallet
@@ -90,7 +90,7 @@ setWhitelistMode(false);
 // 8. Monitor and adjust as needed
 ```
 
-## 🛠️ **Management Functions**
+##  **Management Functions**
 
 ### **Whitelist Management**
 ```solidity
@@ -159,7 +159,7 @@ getLaunchStatus() // returns all launch parameters
 tradingEnabledBlock // block when trading was enabled
 ```
 
-## 📊 **Default Configuration**
+##  **Default Configuration**
 
 | Feature | Default Value | Purpose |
 |---------|---------------|---------|
@@ -170,7 +170,7 @@ tradingEnabledBlock // block when trading was enabled
 | Anti-Bot Blocks | 3 blocks | Launch protection |
 | **Normal Fee Percentage** | **5%** | Revenue generation |
 
-### 🚀 **Complete Fee Structure**
+###  **Complete Fee Structure**
 
 | Phase | Condition | Fee % | Max Wallet % | Max Wallet Tokens |
 |-------|-----------|-------|--------------|-------------------|
@@ -181,69 +181,69 @@ tradingEnabledBlock // block when trading was enabled
 | **Phase 4** | 8-15 min public | **10%** | 0.30% | 300,000 TREZA |
 | **Normal** | 15+ min public | **5%** | No limit | No limit |
 
-## 🎯 **Pre-Whitelisted Addresses**
+##  **Pre-Whitelisted Addresses**
 
 These addresses are automatically whitelisted during deployment:
-- ✅ Team Wallet (65% allocation)
-- ✅ Initial Liquidity Wallet (10% allocation)
-- ✅ Marketing & Operations Wallet (10% allocation)
-- ✅ R&D Wallet (5% allocation)
-- ✅ Seed Investors Wallet (5% allocation)
-- ✅ CEX Listing Wallet (5% allocation)
-- ✅ Treasury Wallet 1 (50% of fees)
-- ✅ Treasury Wallet 2 (50% of fees)
-- ✅ Contract Deployer
+-  Team Wallet (65% allocation)
+-  Initial Liquidity Wallet (10% allocation)
+-  Marketing & Operations Wallet (10% allocation)
+-  R&D Wallet (5% allocation)
+-  Seed Investors Wallet (5% allocation)
+-  CEX Listing Wallet (5% allocation)
+-  Treasury Wallet 1 (50% of fees)
+-  Treasury Wallet 2 (50% of fees)
+-  Contract Deployer
 
-## 🚨 **Common Anti-Sniping Scenarios**
+##  **Common Anti-Sniping Scenarios**
 
 ### **Scenario 1: Trusted user during private period**
-- ✅ **Result:** 0% fees, no max wallet limits
-- ✅ **Protection:** Whitelist-only access for fair early trading
+-  **Result:** 0% fees, no max wallet limits
+-  **Protection:** Whitelist-only access for fair early trading
 
 ### **Scenario 2: Bot tries to buy at public launch (0-1 minute)**
-- ❌ **Result:** 40% fee + max 100K tokens
-- ✅ **Protection:** Extreme fees + max wallet limits
+-  **Result:** 40% fee + max 100K tokens
+-  **Protection:** Extreme fees + max wallet limits
 
 ### **Scenario 3: Sniper tries large buy in Phase 2 (1-5 minutes)**
-- ❌ **Result:** 30% fee taken + limited to 150K tokens max wallet
-- ✅ **Protection:** Time-based fees + max wallet limits
+-  **Result:** 30% fee taken + limited to 150K tokens max wallet
+-  **Protection:** Time-based fees + max wallet limits
 
 ### **Scenario 4: Whale tries to accumulate in Phase 3 (5-8 minutes)**
-- ❌ **Result:** 20% fee + max 200K tokens per wallet
-- ✅ **Protection:** Dynamic max wallet enforcement
+-  **Result:** 20% fee + max 200K tokens per wallet
+-  **Protection:** Dynamic max wallet enforcement
 
 ### **Scenario 5: Bot tries rapid transactions**
-- ❌ **Result:** Subsequent transactions fail (cooldown active)
-- ✅ **Protection:** Transfer cooldown
+-  **Result:** Subsequent transactions fail (cooldown active)
+-  **Protection:** Transfer cooldown
 
 ### **Scenario 6: Multiple wallets try to bypass max wallet**
-- ❌ **Result:** Each wallet still limited by current phase max
-- ✅ **Protection:** Per-wallet max enforcement
+-  **Result:** Each wallet still limited by current phase max
+-  **Protection:** Per-wallet max enforcement
 
 ### **Scenario 7: Bot detected after launch**
-- ❌ **Result:** Address blacklisted, cannot trade
-- ✅ **Protection:** Emergency blacklist function
+-  **Result:** Address blacklisted, cannot trade
+-  **Protection:** Emergency blacklist function
 
 ### **Scenario 8: Normal user after 15 minutes**
-- ✅ **Result:** Normal 5% fee, no max wallet limit
-- ✅ **Protection:** Fair trading for legitimate users
+-  **Result:** Normal 5% fee, no max wallet limit
+-  **Protection:** Fair trading for legitimate users
 
-## 💡 **Best Practices**
+##  **Best Practices**
 
 ### **For Launch Teams:**
-1. 🕐 **Plan whitelist carefully** - Include all necessary addresses
-2. 🧪 **Test with small amounts** first
-3. 📊 **Monitor transactions** during early launch
-4. ⚡ **Be ready to use emergency functions** if needed
-5. 📢 **Communicate launch phases** to community
+1. � **Plan whitelist carefully** - Include all necessary addresses
+2. � **Test with small amounts** first
+3.  **Monitor transactions** during early launch
+4.  **Be ready to use emergency functions** if needed
+5. � **Communicate launch phases** to community
 
 ### **For Communities:**
-1. ✅ **Get whitelisted early** for best access
-2. 🎯 **Respect transaction limits** during launch
-3. ⏰ **Wait for cooldown** between transactions
-4. 📈 **Understand that limits protect everyone** from manipulation
+1.  **Get whitelisted early** for best access
+2.  **Respect transaction limits** during launch
+3.  **Wait for cooldown** between transactions
+4. � **Understand that limits protect everyone** from manipulation
 
-## 🔍 **Monitoring & Analytics**
+##  **Monitoring & Analytics**
 
 ### **Time-Based Anti-Sniper Monitoring**
 ```solidity
@@ -288,31 +288,31 @@ const userBalance = await contract.balanceOf(userAddress);
 const canBuy = userBalance + purchaseAmount <= maxWallet;
 ```
 
-## 🎊 **Why This Matters**
+##  **Why This Matters**
 
 **Without Anti-Sniping Protection:**
-- 🤖 Bots buy tokens instantly at launch
-- 📈 Price manipulated by large early purchases  
-- 😞 Community gets worse prices
-- 💔 Unfair launch experience
+-  Bots buy tokens instantly at launch
+- � Price manipulated by large early purchases  
+- � Community gets worse prices
+-  Unfair launch experience
 
-**🚀 With TIME-BASED Anti-Sniping Protection:**
-- ✅ **Free trading for trusted users** (0% fees during private period)
-- ✅ **Extreme deterrent for bots** (40% fees at public launch)
-- ✅ **Graduated fee reduction** rewards patience
-- ✅ **Max wallet limits** prevent whale accumulation
-- ✅ **Fair access for whitelisted community**
-- ✅ **Controlled launch sequence** with automatic progression
-- ✅ **Protection against manipulation** across all phases
-- ✅ **Emergency controls available** throughout
-- ✅ **Normal trading** after 15 minutes for regular users
-- 🎉 **Most comprehensive fair launch system available!**
+** With TIME-BASED Anti-Sniping Protection:**
+-  **Free trading for trusted users** (0% fees during private period)
+-  **Extreme deterrent for bots** (40% fees at public launch)
+-  **Graduated fee reduction** rewards patience
+-  **Max wallet limits** prevent whale accumulation
+-  **Fair access for whitelisted community**
+-  **Controlled launch sequence** with automatic progression
+-  **Protection against manipulation** across all phases
+-  **Emergency controls available** throughout
+-  **Normal trading** after 15 minutes for regular users
+- � **Most comprehensive fair launch system available!**
 
 ---
 
-## 🚀 **Ready to Launch?**
+##  **Ready to Launch?**
 
-Your TREZA token now has comprehensive anti-sniping protection! 🛡️
+Your TREZA token now has comprehensive anti-sniping protection! 
 
 **Next Steps:**
 1. Deploy the enhanced contract

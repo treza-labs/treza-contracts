@@ -1,6 +1,6 @@
 # TREZA Token Deployment Guide
 
-## 🚀 Quick Deploy Commands
+##  Quick Deploy Commands
 
 ### Local Testing
 ```bash
@@ -26,28 +26,28 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ---
 
-## 🛡️ Anti-Sniping Protection
+##  Anti-Sniping Protection
 
 Your TREZA token deploys with **comprehensive anti-sniping protection**:
 
 ### Initial State (SAFE DEPLOYMENT)
-- ❌ **Trading DISABLED** (must be enabled manually)
-- ✅ **Whitelist-only mode** (only approved addresses can trade)
+-  **Trading DISABLED** (must be enabled manually)
+-  **Whitelist-only mode** (only approved addresses can trade)
 
-- ✅ **Transfer cooldown** (1 second between transactions)
-- ✅ **All allocation wallets pre-whitelisted**
+-  **Transfer cooldown** (1 second between transactions)
+-  **All allocation wallets pre-whitelisted**
 
 ### Protection Features
-- 🛡️ **Whitelist-only trading periods**
+-  **Whitelist-only trading periods**
  
-- ⏰ **Transfer cooldown protection**
-- 🚫 **Emergency blacklist capability**
-- 🤖 **3-block anti-bot protection** after trading enabled
-- 🔒 **Complete launch control**
+-  **Transfer cooldown protection**
+- � **Emergency blacklist capability**
+-  **3-block anti-bot protection** after trading enabled
+-  **Complete launch control**
 
 ---
 
-## 📋 Required Wallet Addresses
+## � Required Wallet Addresses
 
 You need **8 different wallet addresses**:
 
@@ -70,7 +70,7 @@ You need **8 different wallet addresses**:
 
 ---
 
-## 🚀 Fair Launch Sequence
+##  Fair Launch Sequence
 
 ### Phase 1: Pre-Launch Setup
 ```bash
@@ -98,7 +98,7 @@ You need **8 different wallet addresses**:
 
 ---
 
-## 🔧 Launch Management Functions
+##  Launch Management Functions
 
 ### Trading Control (Owner Only - Instant Changes)
 - `setTradingEnabled(true/false)` - Master trading switch
@@ -119,22 +119,22 @@ You need **8 different wallet addresses**:
 
 ---
 
-## 📊 Contract Features
+##  Contract Features
 
-### 🎯 Core Tokenomics
+###  Core Tokenomics
 - **Fixed Supply:** 100M TREZA tokens
 - **Transfer Fees:** 5% initial (adjustable 0-10%)
 - **Dual Treasury:** 50/50 fee split
 - **Ownership:** Direct ownership (governance can be added later)
 
-### 🛡️ Anti-Sniping Features
+###  Anti-Sniping Features
 - **Whitelist Control:** Complete trading access control
 - **Transaction Limits:** Prevent whale manipulation
 - **Cooldown Protection:** Prevent spam/bot trading
 - **Launch Management:** Controlled trading activation
 - **Emergency Controls:** Blacklist malicious addresses
 
-### 🔍 View Functions
+###  View Functions
 ```solidity
 // Launch Status
 getLaunchStatus()                    // Get all launch parameters
@@ -150,7 +150,7 @@ isBlacklisted(address)             // Check blacklist status
 
 ---
 
-## 🔒 Security Setup
+##  Security Setup
 
 ### Required Environment Variables
 ```env
@@ -172,20 +172,20 @@ ETHERSCAN_API_KEY=your_etherscan_api_key
 
 ---
 
-## ✅ Post-Deployment Checklist
+##  Post-Deployment Checklist
 
-### 1. Verify Contract ✅
+### 1. Verify Contract 
 ```bash
 npx hardhat run scripts/verify.ts --network sepolia
 ```
 
-### 2. Configure Launch Settings ✅
+### 2. Configure Launch Settings 
 - [ ] Add DEX addresses to whitelist
 - [ ] Add team/community addresses to whitelist  
 - [ ] Test small transactions
 - [ ] Verify anti-sniping features work
 
-### 3. Execute Launch Sequence ✅
+### 3. Execute Launch Sequence 
 - [ ] Add initial liquidity (whitelisted only)
 - [ ] Enable trading
 - [ ] Monitor for 3-block anti-bot period
@@ -193,16 +193,16 @@ npx hardhat run scripts/verify.ts --network sepolia
 - [ ] Disable whitelist when ready for public
 - [ ] Remove limits after stabilization
 
-### 4. Documentation ✅
+### 4. Documentation 
 - [ ] Update README with contract address
 - [ ] Share contract address with stakeholders
 - [ ] Provide ANTI_SNIPE_GUIDE.md to team
 
 ---
 
-## 🚨 Security Warnings
+##  Security Warnings
 
-⚠️ **CRITICAL SECURITY NOTES:**
+ **CRITICAL SECURITY NOTES:**
 - **NEVER commit private keys to git**
 - **Always test on Sepolia before mainnet**
 - **Verify contract on Etherscan after deployment**
@@ -213,7 +213,7 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ---
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - **Anti-Sniping Guide:** See `ANTI_SNIPE_GUIDE.md` for complete launch management
 - **Hardhat Docs:** https://hardhat.org/docs
@@ -222,10 +222,10 @@ npx hardhat run scripts/verify.ts --network sepolia
 
 ---
 
-## 🎊 Congratulations!
+##  Congratulations!
 
 Your TREZA token now has **comprehensive anti-sniping protection** and is ready for a **fair launch**! 
 
-Your token is ready for a secure deployment and launch. 🌟
+Your token is ready for a secure deployment and launch. 
 
-**Happy deploying!** 🚀
+**Happy deploying!** 

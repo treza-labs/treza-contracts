@@ -1,8 +1,8 @@
-# 🚀 Pre-Deployment Security Checklist
+#  Pre-Deployment Security Checklist
 
-## ⚠️ CRITICAL - Complete Before Public Release
+##  CRITICAL - Complete Before Public Release
 
-### 🔒 Security Essentials
+###  Security Essentials
 
 #### Private Keys & Secrets
 - [ ] **No private keys in code** - All keys in secure hardware wallets
@@ -18,13 +18,13 @@
 - [ ] **Emergency controls tested** - Pause/unpause mechanisms work
 - [ ] **Access controls verified** - Only authorized addresses can call admin functions
 
-### 📋 Configuration Updates Required
+### � Configuration Updates Required
 
 #### 1. Update All Placeholder Addresses
 
 **In `scripts/deploy.ts`:**
 ```solidity
-// ❌ REPLACE THESE PLACEHOLDER ADDRESSES:
+//  REPLACE THESE PLACEHOLDER ADDRESSES:
 initialLiquidityWallet: "0x742d35Cc...", // UPDATE: Your liquidity wallet
 teamWallet: "0x742d35Cc...",             // UPDATE: Your team multisig  
 treasury1: "0x742d35Cc...",              // UPDATE: Treasury wallet 1
@@ -34,14 +34,14 @@ treasury2: "0x742d35Cc...",              // UPDATE: Treasury wallet 2
 
 **In `scripts/governance/deploy-timelock.ts`:**
 ```solidity
-// ❌ REPLACE THESE:
+//  REPLACE THESE:
 "0x742d35Cc...", // UPDATE: Your team multisig
 "0x742d35Cc...", // UPDATE: Backup multisig
 ```
 
 **In `scripts/compliance/deploy-compliance-contracts.ts`:**
 ```solidity
-// ❌ REPLACE THESE:
+//  REPLACE THESE:
 zkVerifyContract: "0x0000000000000000000000000000000000000000", // UPDATE: Real zkVerify contract
 trezaTokenAddress: "0x0000000000000000000000000000000000000000", // UPDATE: Deployed TREZA token
 ```
@@ -62,7 +62,7 @@ ETHERSCAN_API_KEY=your_etherscan_api_key
 COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 ```
 
-### 🧪 Testing Requirements
+### � Testing Requirements
 
 #### Testnet Deployment
 - [ ] **Deploy on Sepolia** - Full deployment tested
@@ -78,7 +78,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 - [ ] **Emergency scenario testing** - Pause/unpause works correctly
 - [ ] **Governance testing** - Timelock and voting mechanisms work
 
-### 🏛️ Governance Setup
+###  Governance Setup
 
 #### Timelock Configuration
 - [ ] **Minimum delay set** - 24+ hours for mainnet
@@ -92,7 +92,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 - [ ] **Emergency multisig deployed** - For critical situations
 - [ ] **Backup procedures** - Key recovery processes documented
 
-### 📊 Monitoring & Alerting
+###  Monitoring & Alerting
 
 #### Contract Monitoring
 - [ ] **Etherscan verification** - All contracts verified
@@ -107,7 +107,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 - [ ] **Contract interaction monitoring** - Unknown contract calls
 - [ ] **Emergency contact system** - 24/7 response capability
 
-### 📚 Documentation
+###  Documentation
 
 #### Public Documentation
 - [ ] **README updated** - Clear setup instructions
@@ -122,7 +122,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 - [ ] **Deployment procedures** - Repeatable deployment process
 - [ ] **Monitoring runbooks** - Alert response procedures
 
-### 🚨 Final Security Review
+###  Final Security Review
 
 #### Code Review
 - [ ] **No debug code** - All console.log and debug statements removed
@@ -138,7 +138,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 - [ ] **Sufficient gas** - Deployment transactions have enough gas
 - [ ] **Backup plan** - Rollback procedures if needed
 
-## ⚡ Deployment Day Checklist
+##  Deployment Day Checklist
 
 ### Pre-Deployment (T-24 hours)
 - [ ] **Final code freeze** - No more changes
@@ -161,7 +161,7 @@ COINMARKETCAP_API_KEY=your_coinmarketcap_api_key
 
 ---
 
-## 🚨 STOP - Do Not Deploy If Any Item Is Unchecked
+##  STOP - Do Not Deploy If Any Item Is Unchecked
 
 **This checklist ensures the security and reliability of the TREZA protocol. Every item must be completed before public deployment.**
 

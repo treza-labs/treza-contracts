@@ -4,46 +4,46 @@
 
 This directory contains governance contracts and scripts for decentralizing your Treza token. These contracts are **ready to deploy** when you want to transition from direct ownership to community governance.
 
-## 🏗️ Contract Architecture
+##  Contract Architecture
 
 ### Current State: Direct Ownership
 ```
-You (Owner) → TrezaToken
-     ↑
+You (Owner)  TrezaToken
+     
 Direct control over all functions
 ```
 
 ### Future State: Governance Control
 ```
-Proposers → TimelockController → TrezaToken
-              ↑
+Proposers  TimelockController  TrezaToken
+              
          24-hour delay
          
 OR
 
-Token Holders → Governor → TimelockController → TrezaToken
-     ↑           ↑             ↑                  ↑
+Token Holders  Governor  TimelockController  TrezaToken
+                                               
    Vote      Count votes   Enforce delay    Execute changes
 ```
 
-## 📁 Files Structure
+##  Files Structure
 
 ```
 contracts/governance/
-├── TrezaTimelock.sol          # TimelockController for delayed execution
-├── TrezaGovernor.sol          # Full DAO governor with token voting
-└── TrezaTokenVoting.sol       # Voting-enabled token (for DAO)
+ TrezaTimelock.sol          # TimelockController for delayed execution
+ TrezaGovernor.sol          # Full DAO governor with token voting
+ TrezaTokenVoting.sol       # Voting-enabled token (for DAO)
 
 scripts/governance/
-├── deploy-timelock.ts         # Deploy simple timelock governance
-├── deploy-full-dao.ts         # Deploy complete DAO system
-├── transfer-ownership.ts      # Transfer token to governance
-└── examples/
-    ├── propose-fee-change.ts  # Example governance proposal
-    └── execute-proposal.ts    # Example proposal execution
+ deploy-timelock.ts         # Deploy simple timelock governance
+ deploy-full-dao.ts         # Deploy complete DAO system
+ transfer-ownership.ts      # Transfer token to governance
+ examples/
+     propose-fee-change.ts  # Example governance proposal
+     execute-proposal.ts    # Example proposal execution
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Option 1: Simple Timelock Governance (Recommended First)
 
@@ -81,18 +81,18 @@ npx hardhat run scripts/governance/deploy-full-dao.ts --network sepolia
 
 **2. Community votes on proposals through token holdings**
 
-## 🏛️ Governance Options
+##  Governance Options
 
 ### Simple Timelock Governance
 
 **Best for:** Teams that want decentralization with time delays but don't need token voting.
 
 **Features:**
-- ✅ 24-hour delay on all changes
-- ✅ Transparent proposals
-- ✅ Multiple proposers supported
-- ✅ Anyone can execute approved proposals
-- ✅ No token voting required
+-  24-hour delay on all changes
+-  Transparent proposals
+-  Multiple proposers supported
+-  Anyone can execute approved proposals
+-  No token voting required
 
 **Workflow:**
 1. Proposer schedules operation
@@ -104,11 +104,11 @@ npx hardhat run scripts/governance/deploy-full-dao.ts --network sepolia
 **Best for:** Projects that want complete community control through token voting.
 
 **Features:**
-- ✅ Token holder voting
-- ✅ Quorum requirements (4% default)
-- ✅ 1-week voting periods
-- ✅ 24-hour execution delays
-- ✅ Fully decentralized
+-  Token holder voting
+-  Quorum requirements (4% default)
+-  1-week voting periods
+-  24-hour execution delays
+-  Fully decentralized
 
 **Workflow:**
 1. Token holder creates proposal
@@ -116,7 +116,7 @@ npx hardhat run scripts/governance/deploy-full-dao.ts --network sepolia
 3. If passed, 24-hour delay
 4. Anyone can execute
 
-## 📋 Configuration Options
+## � Configuration Options
 
 ### Timelock Settings
 
@@ -143,7 +143,7 @@ const proposalThreshold = 0; // Anyone can propose
 const quorumPercentage = 4;  // 4% quorum required
 ```
 
-## 🔧 Usage Examples
+##  Usage Examples
 
 ### Propose Fee Change
 
@@ -194,27 +194,27 @@ await governor.queue(/* proposal details */);
 await governor.execute(/* proposal details */);
 ```
 
-## 🛡️ Security Features
+##  Security Features
 
 ### Timelock Protection
-- ✅ **24-hour delays** prevent rushed decisions
-- ✅ **Public proposals** allow community review
-- ✅ **Transparent execution** - all changes are visible
-- ✅ **Emergency response time** for community
+-  **24-hour delays** prevent rushed decisions
+-  **Public proposals** allow community review
+-  **Transparent execution** - all changes are visible
+-  **Emergency response time** for community
 
 ### Access Control
-- ✅ **Proposer roles** limit who can submit proposals
-- ✅ **Executor roles** control who can execute (or open to all)
-- ✅ **Admin renunciation** for full decentralization
-- ✅ **Role-based permissions** prevent unauthorized access
+-  **Proposer roles** limit who can submit proposals
+-  **Executor roles** control who can execute (or open to all)
+-  **Admin renunciation** for full decentralization
+-  **Role-based permissions** prevent unauthorized access
 
 ### DAO Protection
-- ✅ **Voting delays** prevent flash loan attacks
-- ✅ **Quorum requirements** ensure sufficient participation
-- ✅ **Token-based voting** aligns incentives
-- ✅ **Proposal thresholds** prevent spam
+-  **Voting delays** prevent flash loan attacks
+-  **Quorum requirements** ensure sufficient participation
+-  **Token-based voting** aligns incentives
+-  **Proposal thresholds** prevent spam
 
-## 📊 Governance Functions
+##  Governance Functions
 
 All these functions become governance-controlled after ownership transfer:
 
@@ -239,7 +239,7 @@ setAntiSniperPhases(TimeFeePhase[4])
 startPublicTradingTimer()
 ```
 
-## 🧪 Testing
+## � Testing
 
 ### Before Mainnet Deployment
 
@@ -262,46 +262,46 @@ npx hardhat run scripts/governance/examples/propose-fee-change.ts --network sepo
 npx hardhat run scripts/governance/examples/execute-proposal.ts --network sepolia
 ```
 
-## 🚨 Important Warnings
+##  Important Warnings
 
 ### Before Transfer
-- ⚠️ **Test thoroughly** on testnet first
-- ⚠️ **Verify governance contracts** are working
-- ⚠️ **Ensure you have proposer access**
-- ⚠️ **Document all procedures**
+-  **Test thoroughly** on testnet first
+-  **Verify governance contracts** are working
+-  **Ensure you have proposer access**
+-  **Document all procedures**
 
 ### After Transfer
-- ⚠️ **Ownership transfer is irreversible**
-- ⚠️ **All changes require governance**
-- ⚠️ **Time delays apply to everything**
-- ⚠️ **Emergency procedures needed**
+-  **Ownership transfer is irreversible**
+-  **All changes require governance**
+-  **Time delays apply to everything**
+-  **Emergency procedures needed**
 
-## 🎯 Migration Timeline
+##  Migration Timeline
 
 ### Phase 1: Launch (Current)
-- ✅ Direct ownership for fast iteration
-- ✅ Deploy and test governance contracts
-- ✅ Prepare migration procedures
+-  Direct ownership for fast iteration
+-  Deploy and test governance contracts
+-  Prepare migration procedures
 
 ### Phase 2: Simple Governance (Month 1-3)
-- 🔄 Deploy timelock governance
-- 🔄 Transfer ownership to timelock
-- 🔄 Test governance workflow
+-  Deploy timelock governance
+-  Transfer ownership to timelock
+-  Test governance workflow
 
 ### Phase 3: Full DAO (Month 6+)
-- 🔄 Deploy DAO governance
-- 🔄 Migrate to token voting
-- 🔄 Full community control
+-  Deploy DAO governance
+-  Migrate to token voting
+-  Full community control
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - **OpenZeppelin Governance:** https://docs.openzeppelin.com/contracts/governance
 - **Timelock Documentation:** https://docs.openzeppelin.com/contracts/api/governance#TimelockController
 - **Governor Documentation:** https://docs.openzeppelin.com/contracts/api/governance#governor
 - **Governance Best Practices:** https://blog.openzeppelin.com/governor-smart-contract/
 
-## 🎉 Ready to Decentralize?
+## � Ready to Decentralize?
 
 Your governance contracts are ready! When you're prepared to transition from direct ownership to community governance, these contracts provide a secure, tested path forward.
 
-**Remember:** Start simple with timelock governance, then evolve to full DAO when your community is ready. 🏛️
+**Remember:** Start simple with timelock governance, then evolve to full DAO when your community is ready. 
