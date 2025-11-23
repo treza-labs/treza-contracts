@@ -15,12 +15,12 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
   - Anti-sniping protection and fair launch mechanisms
   - Dynamic fee structures and treasury management
 
-- **Compliance Contracts** (`contracts/compliance/`)
-  - Zero-knowledge identity verification using ZKPassport
-  - Privacy-preserving KYC/AML compliance
-  - Production zkVerify integration with Oracle and Attestation systems
-  - Multi-tier verification: Oracle (automated) + Attestation (professional)
-  - Hybrid verification routing based on transaction value and risk
+- **KYC Verification Contracts** (`contracts/kyc/`)
+  - Zero-knowledge identity verification using ZKPassport mobile app
+  - Privacy-preserving KYC/AML compliance on-chain
+  - Role-based access control for proof verification
+  - Multi-tier compliance levels: Basic, Enhanced, Institutional
+  - Compliance-weighted governance and token transfer controls
 
 - **Governance Contracts** (`contracts/governance/`)
   - Decentralized governance with timelock controls
