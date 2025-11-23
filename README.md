@@ -188,13 +188,13 @@ npx hardhat run scripts/deploy.ts --network sepolia
 npx hardhat run scripts/verify.ts --network sepolia
 ```
 
-#### zkVerify Production Systems
+#### KYC Verification System
 ```bash
-# Deploy zkVerify Oracle and Attestation systems
-npx hardhat run scripts/compliance/deploy-zkverify-systems.ts --network sepolia
-
-# Deploy compliance contracts only
+# Deploy KYC verification contracts (KYCVerifier + TrezaComplianceIntegration)
 npx hardhat run scripts/compliance/deploy-compliance-contracts.ts --network sepolia
+
+# Deploy compliance integration only (requires existing KYCVerifier)
+npx hardhat run scripts/compliance/deploy-integration-only.ts --network sepolia
 ```
 
 ## Documentation
