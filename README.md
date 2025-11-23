@@ -16,7 +16,7 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
   - Dynamic fee structures and treasury management
 
 - **KYC Verification Contracts** (`contracts/kyc/`)
-  - Zero-knowledge identity verification using ZKPassport mobile app
+  - Zero-knowledge identity verification system
   - Privacy-preserving KYC/AML compliance on-chain
   - Role-based access control for proof verification
   - Multi-tier compliance levels: Basic, Enhanced, Institutional
@@ -30,7 +30,7 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 ### Key Features
 
 **Zero-Knowledge KYC Verification**
-- Privacy-preserving identity verification with ZKPassport mobile app
+- Privacy-preserving identity verification system
 - On-chain KYC proof storage with role-based access control
 - Compliance integration with governance and token features
 - Time-based proof validity and automatic expiration
@@ -45,7 +45,7 @@ The TREZA compliance system uses two primary contracts working in tandem:
 The KYCVerifier is the foundational contract that stores and validates zero-knowledge proofs on-chain.
 
 **Core Functionality:**
-- **Proof Submission**: Users submit cryptographic proofs (commitment + ZK proof + public claims) via the ZKPassport mobile app
+- **Proof Submission**: Users submit cryptographic proofs (commitment + ZK proof + public claims) from their mobile devices
 - **Role-Based Verification**: Configurable access control using OpenZeppelin's AccessControl
   - `ADMIN_ROLE`: Manages contract configuration and revokes proofs
   - `VERIFIER_ROLE`: Authorized addresses that can verify submitted proofs
@@ -83,13 +83,13 @@ This contract bridges the KYC verification system with TREZA token governance an
 
 **Integration Flow:**
 ```
-User → ZKPassport App → KYCVerifier.submitProof()
-                              ↓
-                        Proof Stored On-Chain
-                              ↓
-                TrezaComplianceIntegration.isUserCompliant()
-                              ↓
-                    Token Transfer/Governance Action
+User → Mobile App → KYCVerifier.submitProof()
+                         ↓
+                   Proof Stored On-Chain
+                         ↓
+          TrezaComplianceIntegration.isUserCompliant()
+                         ↓
+              Token Transfer/Governance Action
 ```
 
 **Key Methods:**
@@ -110,7 +110,7 @@ batchCheckCompliance(address[] users) → efficient multi-user checking
 
 The system ensures privacy through:
 1. **Zero-Knowledge Proofs**: Verify identity claims without revealing underlying data
-2. **Local Proof Generation**: All proofs generated on user's device (ZKPassport app)
+2. **Local Proof Generation**: All proofs generated locally on user's device
 3. **Selective Disclosure**: Users choose which claims to reveal (age, nationality, etc.)
 4. **No Personal Data On-Chain**: Only cryptographic commitments stored
 5. **Decentralized Verification**: No centralized identity database
