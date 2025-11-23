@@ -167,12 +167,10 @@ curl -X POST ${RELAYER_API_URL}/register-vk/${RELAYER_API_KEY} \\
         console.log(`  ✅ Registered and ready to use\n`);
 
         console.log("🚀 Next Steps:\n");
-        console.log("1. Update ZKVERIFY_CONTRACT_ADDRESS with the real address");
-        console.log("   - Check zkVerify docs or contact Horizen Labs");
-        console.log("2. Deploy ZKVerifyAggregationVerifier:");
-        console.log("   npx hardhat run scripts/deploy-aggregation-verifier.ts --network sepolia");
-        console.log("3. Test the integration:");
-        console.log("   npx hardhat test test/kyc/ZKVerifyAggregationVerifier.test.ts\n");
+        console.log("1. Deploy KYC verification contracts:");
+        console.log("   npx hardhat run scripts/compliance/deploy-compliance-contracts.ts --network sepolia");
+        console.log("2. Test the integration:");
+        console.log("   npx hardhat test test/kyc/\n");
 
     } catch (error: any) {
         if (error.response?.data?.vkHash) {

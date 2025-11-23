@@ -11,8 +11,8 @@ async function main() {
     const balance = await ethers.provider.getBalance(deployer.address);
     console.log("💰 Balance:", ethers.formatEther(balance), "ETH");
 
-    // Use the latest deployed ZKPassportVerifier address
-    const zkPassportVerifierAddress = "0x8c0C6e0Eaf6bc693745A1A3a722e2c9028BBe874";
+    // Use the latest deployed KYCVerifier address (update with your deployed address)
+    const kycVerifierAddress = "0x0000000000000000000000000000000000000000"; // Update with actual KYCVerifier address
     
     // Deploy simple mock TREZA token for testing
     console.log("📋 Deploying Mock TREZA Token...");
@@ -32,7 +32,7 @@ async function main() {
     const TrezaComplianceIntegrationFactory = await ethers.getContractFactory("TrezaComplianceIntegration");
     
     const complianceIntegration = await TrezaComplianceIntegrationFactory.deploy(
-        zkPassportVerifierAddress,
+        kycVerifierAddress,
         trezaTokenAddress,
         {
             gasLimit: 3000000,
@@ -44,28 +44,21 @@ async function main() {
     const integrationAddress = await complianceIntegration.getAddress();
     
     console.log("✅ TrezaComplianceIntegration deployed to:", integrationAddress);
-    
-    // Add integration as authorized verifier
-    console.log("🔐 Adding integration as authorized verifier...");
-    const zkPassportVerifier = await ethers.getContractAt("ZKPassportVerifier", zkPassportVerifierAddress);
-    const addVerifierTx = await zkPassportVerifier.addAuthorizedVerifier(integrationAddress);
-    await addVerifierTx.wait();
-    console.log("✅ Authorized verifier added");
 
     console.log("\n📄 Deployment Summary:");
     console.log("=" .repeat(60));
-    console.log("ZKPassportVerifier:", zkPassportVerifierAddress);
+    console.log("KYCVerifier:", kycVerifierAddress);
     console.log("TREZA Token:", trezaTokenAddress);
     console.log("TrezaComplianceIntegration:", integrationAddress);
     console.log("=" .repeat(60));
     
     console.log("\n🔧 Environment Variables for SDK:");
-    console.log(`REACT_APP_COMPLIANCE_VERIFIER_ADDRESS=${zkPassportVerifierAddress}`);
+    console.log(`REACT_APP_KYC_VERIFIER_ADDRESS=${kycVerifierAddress}`);
     console.log(`REACT_APP_COMPLIANCE_INTEGRATION_ADDRESS=${integrationAddress}`);
     console.log(`REACT_APP_TREZA_TOKEN_ADDRESS=${trezaTokenAddress}`);
 
     console.log("\n🔍 Etherscan Links:");
-    console.log(`ZKPassportVerifier: https://sepolia.etherscan.io/address/${zkPassportVerifierAddress}`);
+    console.log(`KYCVerifier: https://sepolia.etherscan.io/address/${kycVerifierAddress}`);
     console.log(`TREZA Token: https://sepolia.etherscan.io/address/${trezaTokenAddress}`);
     console.log(`TrezaComplianceIntegration: https://sepolia.etherscan.io/address/${integrationAddress}`);
 

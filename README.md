@@ -29,12 +29,12 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 
 ### Key Features
 
-**Production zkVerify Integration**
-- Zero-knowledge identity verification with ZKPassport
-- Oracle system: Fast, automated verification for high-volume transactions
-- Attestation system: Professional oversight for high-value transactions
-- Hybrid routing: Smart verification based on transaction requirements
-- No personal data stored on-chain
+**Zero-Knowledge KYC Verification**
+- Privacy-preserving identity verification with ZKPassport mobile app
+- On-chain KYC proof storage with role-based access control
+- Compliance integration with governance and token features
+- Time-based proof validity and automatic expiration
+- No personal data stored on-chain - only cryptographic proofs
 
 **Fair Launch Protection**
 - Multi-phase anti-sniping mechanisms
@@ -102,33 +102,23 @@ All contracts expose clean, well-documented interfaces:
 
 #### Core Interfaces
 - [`ITreza`](contracts/token/interfaces/ITreza.sol) - Main token interface
-- [`IZKPassportVerifier`](contracts/compliance/interfaces/IZKPassportVerifier.sol) - Compliance verification
-- [`IComplianceIntegration`](contracts/compliance/interfaces/IComplianceIntegration.sol) - Integration layer
+- [`IZKPassportVerifier`](contracts/kyc/interfaces/IZKPassportVerifier.sol) - Compliance verification interface
 
-#### zkVerify Production Systems
-- [`IZKVerifyOracle`](contracts/compliance/interfaces/IZKVerifyOracle.sol) - Oracle system interface
-- [`IAttestationSystem`](contracts/compliance/interfaces/IAttestationSystem.sol) - Professional attestation interface
+### KYC Verification Features
 
-### zkVerify Integration Features
+#### KYC Verifier (`KYCVerifier.sol`)
+- **Zero-Knowledge Proofs**: Privacy-preserving identity verification
+- **Role-Based Access**: Configurable verifier authorization
+- **Time-Based Validity**: Automatic expiration of KYC proofs
+- **Gas Optimized**: Efficient storage and retrieval of verification status
+- **Flexible Verification**: Support for multiple verification levels
 
-#### Oracle System (`ZKVerifyOracle.sol`)
-- **Multi-Oracle Consensus**: Multiple authorized oracles for redundancy
-- **Signature Verification**: Cryptographic proof of zkVerify results
-- **Time-Based Validity**: Automatic expiration of old verifications
-- **Gas Optimized**: Efficient storage and retrieval of verification results
-
-#### Attestation System (`AttestationSystem.sol`)
-- **Professional Attesters**: KYC'd institutional and individual attesters
-- **Tier-Based Access**: Bronze, Silver, Gold, Platinum attester levels
-- **Staking Mechanism**: Economic incentives for honest attestation
-- **Slashing Protection**: Penalties for incorrect attestations
-- **Metadata Support**: Rich context for attestation decisions
-
-#### Hybrid Verification (`ZKPassportVerifier.sol`)
-- **Smart Routing**: Automatic selection between Oracle and Attestation
-- **Value-Based Logic**: High-value transactions → Attestation, High-volume → Oracle
-- **Fallback Modes**: Graceful degradation when systems are unavailable
-- **Admin Controls**: Runtime configuration of verification strategies
+#### Compliance Integration (`TrezaComplianceIntegration.sol`)
+- **Token Integration**: Direct integration with TREZA token
+- **Governance Controls**: Compliance-gated governance participation
+- **Batch Operations**: Efficient multi-user compliance checking
+- **Exemption System**: Configurable compliance exemptions
+- **Flexible Configuration**: Runtime configuration of compliance rules
 
 ### Available Documentation
 
@@ -150,28 +140,23 @@ contracts/
 ├── token/                  # ERC20 token contracts
 │   ├── interfaces/         # Public interfaces
 │   └── *.sol              # Implementation contracts
-├── compliance/             # Privacy compliance system
+├── kyc/                    # KYC and compliance system
 │   ├── interfaces/         # Compliance interfaces
-│   │   ├── IZKPassportVerifier.sol
-│   │   ├── IZKVerifyOracle.sol
-│   │   └── IAttestationSystem.sol
-│   ├── ZKPassportVerifier.sol      # Main compliance contract
-│   ├── ZKVerifyOracle.sol          # Oracle consensus system
-│   ├── AttestationSystem.sol       # Professional attestation system
-│   └── TrezaComplianceIntegration.sol
+│   │   └── IZKPassportVerifier.sol
+│   ├── KYCVerifier.sol               # Main KYC contract
+│   └── TrezaComplianceIntegration.sol # Compliance integration
 ├── governance/             # DAO governance contracts
 └── utils/                  # Utility contracts
 
 scripts/
-├── compliance/             # zkVerify deployment scripts
+├── compliance/             # Compliance deployment scripts
 │   ├── deploy-compliance-contracts.ts
-│   └── deploy-zkverify-systems.ts
+│   └── deploy-integration-only.ts
 └── *.ts                   # Other deployment scripts
 
 test/
-├── compliance/             # Compliance system tests
-│   ├── ZKPassportVerifier.test.ts
-│   └── ZKVerifyOracle.test.ts
+├── kyc/                    # KYC system tests
+│   └── KYCVerifier.test.ts
 └── *.test.ts              # Other contract tests
 ```
 

@@ -7,15 +7,11 @@ const { ethers } = hre;
  * Deploy TREZA Compliance Contracts
  * 
  * This script deploys:
- * 1. ZKPassportVerifier - Core compliance verification contract
+ * 1. KYCVerifier - Core KYC verification contract
  * 2. TrezaComplianceIntegration - Integration with TREZA token
  */
 
 interface DeploymentConfig {
-    // ZKPassportVerifier config
-    zkVerifyContract: string;
-    allowedCountries: string[];
-    
     // TrezaComplianceIntegration config
     trezaTokenAddress: string;
     
@@ -28,8 +24,6 @@ interface DeploymentConfig {
 const DEPLOYMENT_CONFIG: { [network: string]: DeploymentConfig } = {
     // Sepolia testnet
     sepolia: {
-        zkVerifyContract: "0x0000000000000000000000000000000000000000", // Placeholder - update with actual zkVerify contract
-        allowedCountries: ["US", "CA", "GB", "DE", "FR", "AU", "JP", "SG"],
         trezaTokenAddress: "0x0000000000000000000000000000000000000000", // Update with deployed TREZA token
         confirmations: 2,
         gasPrice: "5000000000" // 5 gwei
@@ -37,8 +31,6 @@ const DEPLOYMENT_CONFIG: { [network: string]: DeploymentConfig } = {
     
     // Mainnet
     mainnet: {
-        zkVerifyContract: "0x0000000000000000000000000000000000000000", // Update with actual zkVerify contract
-        allowedCountries: ["US", "CA", "GB", "DE", "FR", "AU", "JP", "SG", "CH", "NL"],
         trezaTokenAddress: "0x0000000000000000000000000000000000000000", // Update with deployed TREZA token
         confirmations: 5,
         gasPrice: "30000000000" // 30 gwei
@@ -46,8 +38,6 @@ const DEPLOYMENT_CONFIG: { [network: string]: DeploymentConfig } = {
     
     // Local development
     localhost: {
-        zkVerifyContract: "0x0000000000000000000000000000000000000000", // Mock contract for testing
-        allowedCountries: ["US", "CA", "GB"],
         trezaTokenAddress: "0x0000000000000000000000000000000000000000", // Deploy TREZA token first
         confirmations: 1
     }
@@ -81,30 +71,26 @@ async function main() {
         gasLimit: 3000000, // 3M gas limit
     };
 
-    let zkPassportVerifier: any;
+    let kycVerifier: any;
     let complianceIntegration: any;
 
     try {
-        // 1. Deploy ZKPassportVerifier
-        console.log("📋 Deploying ZKPassportVerifier...");
-        const ZKPassportVerifierFactory = await ethers.getContractFactory("ZKPassportVerifier");
+        // 1. Deploy KYCVerifier
+        console.log("📋 Deploying KYCVerifier...");
+        const KYCVerifierFactory = await ethers.getContractFactory("KYCVerifier");
         
-        zkPassportVerifier = await ZKPassportVerifierFactory.deploy(
-            config.zkVerifyContract,
-            config.allowedCountries,
-            deployOptions
-        );
+        kycVerifier = await KYCVerifierFactory.deploy(deployOptions);
 
         console.log(`⏳ Waiting for deployment transaction...`);
-        await zkPassportVerifier.waitForDeployment();
+        await kycVerifier.waitForDeployment();
         
-        const verifierAddress = await zkPassportVerifier.getAddress();
-        console.log(`✅ ZKPassportVerifier deployed to: ${verifierAddress}`);
+        const verifierAddress = await kycVerifier.getAddress();
+        console.log(`✅ KYCVerifier deployed to: ${verifierAddress}`);
 
         // Wait for confirmations
         if (config.confirmations > 1) {
             console.log(`⏳ Waiting for ${config.confirmations} confirmations...`);
-            await zkPassportVerifier.deploymentTransaction()?.wait(config.confirmations);
+            await kycVerifier.deploymentTransaction()?.wait(config.confirmations);
         }
 
         // 2. Deploy TrezaComplianceIntegration
@@ -132,25 +118,25 @@ async function main() {
         // 3. Configure contracts
         console.log("\n⚙️  Configuring contracts...");
         
-        // Add compliance integration as authorized verifier
-        console.log("🔐 Adding TrezaComplianceIntegration as authorized verifier...");
-        const addVerifierTx = await zkPassportVerifier.addAuthorizedVerifier(integrationAddress);
-        await addVerifierTx.wait(config.confirmations);
-        console.log("✅ Authorized verifier added");
+        // Grant VERIFIER_ROLE to deployer
+        console.log("🔐 Granting VERIFIER_ROLE to deployer...");
+        const VERIFIER_ROLE = await kycVerifier.VERIFIER_ROLE();
+        const grantRoleTx = await kycVerifier.grantRole(VERIFIER_ROLE, deployer.address);
+        await grantRoleTx.wait(config.confirmations);
+        console.log("✅ VERIFIER_ROLE granted");
 
         // 4. Verify deployment
         console.log("\n🔍 Verifying deployment...");
         
-        // Check ZKPassportVerifier
-        const verifierOwner = await zkPassportVerifier.owner();
-        const allowedCountriesCount = (await zkPassportVerifier.getAllowedCountries()).length;
-        const minAge = await zkPassportVerifier.minAge();
+        // Check KYCVerifier
+        const hasAdminRole = await kycVerifier.hasRole(await kycVerifier.DEFAULT_ADMIN_ROLE(), deployer.address);
+        const hasVerifierRole = await kycVerifier.hasRole(VERIFIER_ROLE, deployer.address);
+        const validityPeriod = await kycVerifier.proofValidityPeriod();
         
-        console.log(`📊 ZKPassportVerifier Status:`);
-        console.log(`   Owner: ${verifierOwner}`);
-        console.log(`   Allowed Countries: ${allowedCountriesCount}`);
-        console.log(`   Min Age: ${minAge}`);
-        console.log(`   zkVerify Contract: ${await zkPassportVerifier.zkVerifyContract()}`);
+        console.log(`📊 KYCVerifier Status:`);
+        console.log(`   Has Admin Role: ${hasAdminRole}`);
+        console.log(`   Has Verifier Role: ${hasVerifierRole}`);
+        console.log(`   Proof Validity Period: ${validityPeriod} seconds`);
 
         // Check TrezaComplianceIntegration
         const integrationOwner = await complianceIntegration.owner();
@@ -159,7 +145,7 @@ async function main() {
         console.log(`📊 TrezaComplianceIntegration Status:`);
         console.log(`   Owner: ${integrationOwner}`);
         console.log(`   Compliance Enabled: ${complianceEnabled}`);
-        console.log(`   ZKPassport Verifier: ${await complianceIntegration.zkPassportVerifier()}`);
+        console.log(`   KYC Verifier: ${await complianceIntegration.zkPassportVerifier()}`);
         console.log(`   TREZA Token: ${await complianceIntegration.trezaToken()}`);
 
         // 5. Generate deployment summary
@@ -167,20 +153,20 @@ async function main() {
         console.log("=" .repeat(60));
         console.log(`Network: ${networkName}`);
         console.log(`Deployer: ${deployer.address}`);
-        console.log(`ZKPassportVerifier: ${verifierAddress}`);
+        console.log(`KYCVerifier: ${verifierAddress}`);
         console.log(`TrezaComplianceIntegration: ${integrationAddress}`);
         console.log("=" .repeat(60));
 
         // 6. Generate environment variables
         console.log("\n🔧 Environment Variables for SDK:");
-        console.log(`REACT_APP_COMPLIANCE_VERIFIER_ADDRESS=${verifierAddress}`);
+        console.log(`REACT_APP_KYC_VERIFIER_ADDRESS=${verifierAddress}`);
         console.log(`REACT_APP_COMPLIANCE_INTEGRATION_ADDRESS=${integrationAddress}`);
         console.log(`REACT_APP_TREZA_TOKEN_ADDRESS=${config.trezaTokenAddress}`);
 
         // 7. Generate verification commands (for Etherscan)
         if (networkName !== "localhost") {
             console.log("\n🔍 Etherscan Verification Commands:");
-            console.log(`npx hardhat verify --network ${networkName} ${verifierAddress} "${config.zkVerifyContract}" "[${config.allowedCountries.map(c => `"${c}"`).join(',')}]"`);
+            console.log(`npx hardhat verify --network ${networkName} ${verifierAddress}`);
             console.log(`npx hardhat verify --network ${networkName} ${integrationAddress} "${verifierAddress}" "${config.trezaTokenAddress}"`);
         }
 
