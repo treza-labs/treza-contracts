@@ -187,18 +187,18 @@ contract ZKVerifyOracle is IZKVerifyOracle, Ownable, ReentrancyGuard, Pausable {
     
     function batchSubmitVerificationResults(
         bytes32[] calldata proofHashes,
-        bool[] calldata verificationResults,
+        bool[] calldata results,
         bytes32[] calldata zkVerifyBlockHashes,
         bytes calldata signature
     ) external override onlyActiveOracle whenNotPaused nonReentrant {
-        require(proofHashes.length == verificationResults.length, "Array length mismatch");
+        require(proofHashes.length == results.length, "Array length mismatch");
         require(proofHashes.length == zkVerifyBlockHashes.length, "Array length mismatch");
         require(proofHashes.length > 0, "Empty arrays");
         
         // Verify batch signature
         bytes32 batchHash = keccak256(abi.encodePacked(
             proofHashes,
-            verificationResults,
+            results,
             zkVerifyBlockHashes,
             block.chainid,
             address(this)
@@ -215,23 +215,23 @@ contract ZKVerifyOracle is IZKVerifyOracle, Ownable, ReentrancyGuard, Pausable {
             // Record confirmation and update result (simplified for batch)
             oracleConfirmations[proofHash][msg.sender] = true;
             
-            VerificationResult storage result = verificationResults[proofHash];
-            if (result.timestamp == 0) {
-                result.proofHash = proofHash;
-                result.verified = verificationResults[i];
-                result.zkVerifyBlockHash = zkVerifyBlockHashes[i];
-                result.timestamp = block.timestamp;
-                result.submitter = msg.sender;
+            VerificationResult storage vResult = verificationResults[proofHash];
+            if (vResult.timestamp == 0) {
+                vResult.proofHash = proofHash;
+                vResult.verified = results[i];
+                vResult.zkVerifyBlockHash = zkVerifyBlockHashes[i];
+                vResult.timestamp = block.timestamp;
+                vResult.submitter = msg.sender;
             }
             
-            result.confirmations++;
+            vResult.confirmations++;
             
-            emit VerificationSubmitted(proofHash, msg.sender, verificationResults[i], zkVerifyBlockHashes[i]);
+            emit VerificationSubmitted(proofHash, msg.sender, results[i], zkVerifyBlockHashes[i]);
             
             // Check finalization
-            if (result.confirmations >= requiredConfirmations && !result.finalized) {
-                result.finalized = true;
-                emit VerificationFinalized(proofHash, verificationResults[i], result.confirmations);
+            if (vResult.confirmations >= requiredConfirmations && !vResult.finalized) {
+                vResult.finalized = true;
+                emit VerificationFinalized(proofHash, results[i], vResult.confirmations);
             }
         }
         

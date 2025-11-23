@@ -172,7 +172,7 @@ curl -X POST ${RELAYER_API_URL}/register-vk/${RELAYER_API_KEY} \\
         console.log("2. Deploy ZKVerifyAggregationVerifier:");
         console.log("   npx hardhat run scripts/deploy-aggregation-verifier.ts --network sepolia");
         console.log("3. Test the integration:");
-        console.log("   npx hardhat test test/compliance/ZKVerifyAggregationVerifier.test.ts\n");
+        console.log("   npx hardhat test test/kyc/ZKVerifyAggregationVerifier.test.ts\n");
 
     } catch (error: any) {
         if (error.response?.data?.vkHash) {

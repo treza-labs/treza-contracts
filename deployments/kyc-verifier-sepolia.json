@@ -1,0 +1,13 @@
+{
+  "network": "sepolia",
+  "chainId": "11155111",
+  "deployer": "0x1efFc09e27a42a6fAf74093901522D846eB50a8e",
+  "timestamp": "2025-11-23T00:54:24.498Z",
+  "contract": {
+    "name": "KYCVerifier",
+    "address": "0xB1D98F688Fac29471D91234d9f8EbB37238Df6FA",
+    "version": "1.0.0",
+    "proofValidityPeriod": "2592000"
+  },
+  "transactionHash": "0x4db67da2c1c355fe52e170544bfd5fc509277a8bcecca077032c046cbe166216"
+}

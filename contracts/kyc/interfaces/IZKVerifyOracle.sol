@@ -58,6 +58,19 @@ interface IZKVerifyOracle {
     event OracleRemoved(address indexed oracle, string reason);
     event OracleSlashed(address indexed oracle, uint256 amount, string reason);
     
+    event AttestationChallenged(
+        uint256 indexed challengeId,
+        bytes32 indexed proofHash,
+        address indexed challenger,
+        address oracle
+    );
+    
+    event ChallengeResolved(
+        uint256 indexed challengeId,
+        bool oracleWasWrong,
+        uint256 slashAmount
+    );
+    
     // =========================================================================
     // VIEW FUNCTIONS
     // =========================================================================

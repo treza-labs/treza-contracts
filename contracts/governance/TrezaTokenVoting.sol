@@ -74,7 +74,7 @@ contract TrezaTokenVoting is ERC20, ERC20Votes, Ownable {
     function nonces(address owner)
         public
         view
-        override(ERC20Votes, Nonces)
+        override(ERC20Votes)
         returns (uint256)
     {
         return super.nonces(owner);
