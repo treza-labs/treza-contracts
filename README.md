@@ -6,6 +6,59 @@
 
 Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure with zero-knowledge compliance technology.
 
+## How It Works
+
+TREZA uses a two-contract system to achieve privacy-preserving KYC verification:
+
+### Proof Generation & Submission (`KYCVerifier.sol`)
+
+1. **Off-Chain Proof Generation**
+   - Users generate zero-knowledge proofs locally on their mobile devices
+   - Proof includes: cryptographic commitment (Pedersen-SHA256), ZK proof bytes, and public claims
+   - No personal data leaves the device - only cryptographic proofs
+
+2. **On-Chain Submission**
+   ```solidity
+   // User submits proof to blockchain
+   bytes32 proofId = kycVerifier.submitProof(
+       commitment,      // Hash of identity data
+       zkProof,        // Zero-knowledge proof bytes
+       publicInputs    // ["isAdult:true", "country:US"]
+   );
+   ```
+
+3. **Verification Process**
+   - Authorized verifiers (VERIFIER_ROLE) validate proofs on-chain
+   - Proofs checked for expiration, replay attacks, and cryptographic validity
+   - Once verified, proof status stored with timestamp and expiration
+
+### Compliance Checking (`TrezaComplianceIntegration.sol`)
+
+4. **Automated Compliance Gating**
+   ```solidity
+   // Check if user can participate in governance
+   bool isCompliant = complianceIntegration.isUserCompliant(userAddress);
+   
+   // Get detailed eligibility with voting power
+   (bool canVote, uint256 votingPower, , ) = 
+       complianceIntegration.checkGovernanceEligibility(userAddress, proposalId);
+   
+   // Validate compliant transfers
+   (bool allowed, string memory reason) = 
+       complianceIntegration.canTransfer(sender, recipient, amount);
+   ```
+
+5. **Multi-Tier Verification Levels**
+   - **Basic** (1x voting weight): Age and nationality verification
+   - **Enhanced** (2x voting weight): Additional due diligence  
+   - **Institutional** (3x voting weight): Full KYC/AML compliance
+
+6. **Privacy Guarantees**
+   - Only cryptographic commitments stored on-chain (never raw data)
+   - Users control which claims to disclose (selective disclosure)
+   - Proofs are verifiable without revealing underlying information
+   - No centralized identity database - fully decentralized
+
 ## Architecture
 
 ### Core Contracts
