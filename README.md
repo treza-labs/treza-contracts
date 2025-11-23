@@ -36,6 +36,109 @@ Smart contracts powering the TREZA ecosystem. Privacy-preserving infrastructure 
 - Time-based proof validity and automatic expiration
 - No personal data stored on-chain - only cryptographic proofs
 
+### KYC Verification Architecture
+
+The TREZA compliance system uses two primary contracts working in tandem:
+
+#### 1. KYCVerifier Contract (`contracts/kyc/KYCVerifier.sol`)
+
+The KYCVerifier is the foundational contract that stores and validates zero-knowledge proofs on-chain.
+
+**Core Functionality:**
+- **Proof Submission**: Users submit cryptographic proofs (commitment + ZK proof + public claims) via the ZKPassport mobile app
+- **Role-Based Verification**: Configurable access control using OpenZeppelin's AccessControl
+  - `ADMIN_ROLE`: Manages contract configuration and revokes proofs
+  - `VERIFIER_ROLE`: Authorized addresses that can verify submitted proofs
+- **Automatic Expiration**: Proofs have configurable validity periods (default: 30 days)
+- **Replay Protection**: Prevents duplicate submissions using commitment hashes
+- **Zero-Knowledge Privacy**: Only stores cryptographic proofs, never raw identity data
+
+**Key Methods:**
+```solidity
+submitProof(bytes32 commitment, bytes proof, string[] publicInputs) → returns proofId
+verifyProof(bytes32 proofId) → marks proof as verified
+hasValidKYC(address user) → checks if user has valid, non-expired proof
+```
+
+**What Gets Stored:**
+- Commitment hash (Pedersen-SHA256)
+- ZK proof bytes
+- Public claims (e.g., "isAdult:true", "country:US")
+- Timestamps (submission + expiration)
+- Verification status
+
+#### 2. TrezaComplianceIntegration Contract (`contracts/kyc/TrezaComplianceIntegration.sol`)
+
+This contract bridges the KYC verification system with TREZA token governance and compliance features.
+
+**Core Functionality:**
+- **Compliance Gating**: Enforces KYC requirements for token transfers and governance
+- **Weighted Voting**: Multiplies voting power based on verification level
+  - Basic verification: 1x voting weight
+  - Enhanced verification: 2x voting weight
+  - Institutional verification: 3x voting weight
+- **Proposal-Specific Requirements**: Different governance proposals can require different verification levels
+- **Exemption System**: Allows owner to exempt specific addresses (e.g., DEX pools, bridges)
+- **Batch Operations**: Efficiently check compliance for multiple users
+
+**Integration Flow:**
+```
+User → ZKPassport App → KYCVerifier.submitProof()
+                              ↓
+                        Proof Stored On-Chain
+                              ↓
+                TrezaComplianceIntegration.isUserCompliant()
+                              ↓
+                    Token Transfer/Governance Action
+```
+
+**Key Methods:**
+```solidity
+isUserCompliant(address user) → checks KYC status via KYCVerifier
+checkGovernanceEligibility(address user, uint256 proposalId) → returns voting power
+canTransfer(address from, address to, uint256 amount) → validates transfer compliance
+batchCheckCompliance(address[] users) → efficient multi-user checking
+```
+
+**Compliance Levels:**
+1. **None**: No KYC submitted or expired
+2. **Basic**: Standard identity verification (country, age verification)
+3. **Enhanced**: Additional due diligence for higher limits
+4. **Institutional**: Full KYC/AML for institutional participants
+
+#### Privacy Guarantees
+
+The system ensures privacy through:
+1. **Zero-Knowledge Proofs**: Verify identity claims without revealing underlying data
+2. **Local Proof Generation**: All proofs generated on user's device (ZKPassport app)
+3. **Selective Disclosure**: Users choose which claims to reveal (age, nationality, etc.)
+4. **No Personal Data On-Chain**: Only cryptographic commitments stored
+5. **Decentralized Verification**: No centralized identity database
+
+#### Example Use Cases
+
+**Governance Participation:**
+```solidity
+// Check if user can vote on proposal
+(bool canVote, uint256 votingPower, , ) = 
+    complianceIntegration.checkGovernanceEligibility(voter, proposalId);
+
+if (canVote) {
+    // Cast vote with compliance-weighted power
+    governance.castVote(proposalId, votingPower);
+}
+```
+
+**Compliant Token Transfers:**
+```solidity
+// Verify both sender and receiver are compliant
+(bool allowed, string memory reason) = 
+    complianceIntegration.canTransfer(from, to, amount);
+
+require(allowed, reason);
+token.transfer(to, amount);
+```
+
 **Fair Launch Protection**
 - Multi-phase anti-sniping mechanisms
 - Time-based fee structures
