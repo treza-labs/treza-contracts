@@ -1,0 +1,21 @@
+[package]
+name = "treza-fee-splitter"
+version = "0.1.0"
+description = "Treza Token Fee Splitter - Splits collected fees 50/50 to two treasury wallets"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "treza_fee_splitter"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = { version = "0.30.1", features = ["token_2022"] }
+spl-token-2022 = "3.0"

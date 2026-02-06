@@ -65,3 +65,16 @@ credentials.json
 # Test artifacts
 test-results/
 junit.xml
+
+# Solana / Anchor
+solana/target/
+solana/node_modules/
+solana/.anchor/
+solana/config/*.json
+!solana/config/*.example.json
+solana/deployments/*.json
+*.so
+
+# Rust
+Cargo.lock
+**/*.rs.bk

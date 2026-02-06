@@ -1,0 +1,36 @@
+{
+  "name": "treza-solana",
+  "version": "0.1.0",
+  "description": "Treza Token on Solana - Token-2022 with 5% fee and 50/50 treasury split",
+  "license": "MIT",
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "build": "anchor build",
+    "test": "anchor test",
+    "deploy:devnet": "ts-node scripts/deploy-token.ts --network devnet",
+    "deploy:mainnet": "ts-node scripts/deploy-token.ts --network mainnet-beta",
+    "collect-fees": "ts-node scripts/collect-fees.ts",
+    "split-fees": "ts-node scripts/split-fees.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.4.6",
+    "@solana/spl-token-metadata": "^0.1.4",
+    "@solana/web3.js": "^1.95.2",
+    "bn.js": "^5.2.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.12.7",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "prettier": "^3.2.5",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "authorityKeypairPath": "~/.config/solana/treza-authority.json",
+  "treasuryWallet1": "REPLACE_WITH_TREASURY_WALLET_1_PUBKEY",
+  "treasuryWallet2": "REPLACE_WITH_TREASURY_WALLET_2_PUBKEY",
+  "tokenName": "Treza",
+  "tokenSymbol": "TREZA",
+  "tokenUri": "https://trezalabs.com/tokens/treza-metadata.json",
+  "tokenDecimals": 9,
+  "totalSupply": "100000000",
+  "transferFeeBasisPoints": 500,
+  "maxTransferFee": "1000000000000",
+  "allocations": {
+    "team": {
+      "wallet": "REPLACE_WITH_TEAM_WALLET_PUBKEY",
+      "percentage": 65
+    },
+    "initialLiquidity": {
+      "wallet": "REPLACE_WITH_LIQUIDITY_WALLET_PUBKEY",
+      "percentage": 10
+    },
+    "marketingOps": {
+      "wallet": "REPLACE_WITH_MARKETING_WALLET_PUBKEY",
+      "percentage": 10
+    },
+    "rnd": {
+      "wallet": "REPLACE_WITH_RND_WALLET_PUBKEY",
+      "percentage": 5
+    },
+    "seedInvestors": {
+      "wallet": "REPLACE_WITH_SEED_WALLET_PUBKEY",
+      "percentage": 5
+    },
+    "cexListing": {
+      "wallet": "REPLACE_WITH_CEX_WALLET_PUBKEY",
+      "percentage": 5
+    }
+  }
+}
