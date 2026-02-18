@@ -27,62 +27,32 @@ PCR0 is the most important: it uniquely identifies the exact binary running insi
 
 When a smart contract checks `isApproved(pcr0)`, someone had to set that PCR0 as approved. **Who, and why should anyone trust them?**
 
-This is the fundamental design problem. Below is the full spectrum of approaches, from most centralized to most decentralized.
+This is the fundamental design problem. Centralized approaches (single admin, multisig, naive token voting on opaque hashes) don't solve it -- they just move the trust to a different party. The two approaches worth building are **Reproducible Builds + Governance** and **Formal Verification**.
 
 ---
 
-## Trust Spectrum
-
-### Level 0: Single Admin
-
-An owner address calls `approveCode(pcr0)`.
-
-- **Pros**: Simple, fast iteration
-- **Cons**: Single point of failure. Defeats the purpose of using enclaves for trustlessness. The admin could approve malicious code, or be coerced.
-- **Use case**: Internal testing only
-
-### Level 1: Multisig
-
-A k-of-n multisig approves PCR hashes.
-
-- **Pros**: No single point of failure
-- **Cons**: Still a small trusted committee. Collusion risk remains. No transparency into what the PCR hash represents.
-- **Use case**: Early production with known, trusted operators
-
-### Level 2: Token-Weighted Governance
-
-TREZA token holders vote to approve PCR hashes (via `TrezaGovernor`).
-
-- **Pros**: Decentralized authority. Transparent on-chain record of approvals.
-- **Cons**: **The voter competency problem** -- can token holders actually verify what a PCR hash represents? A proposal says "approve PCR0 = abc123 for the treasury agent." Without reading source code, compiling it, and verifying the hash, voters are trusting the proposer on reputation alone. This is effectively Level 0 with a popularity contest.
-- **Use case**: Non-critical governance decisions where social trust is acceptable
-
-### Level 3: Reproducible Builds + Governance
-
-This is where meaningful decentralization begins.
+## Approach 1: Reproducible Builds + Governance
 
 **The key insight**: instead of voting on opaque hashes, vote on **source code** with a **verifiable build pipeline** that links source to PCR values.
 
-The process:
+### How It Works
+
 1. Source code is public (GitHub, IPFS, Arweave)
 2. The build is **deterministic/reproducible** -- anyone can compile the same source with the same toolchain and get the same binary, which produces the same PCR hash
 3. Governance votes on **source code commits**, not raw hashes
 4. Multiple independent parties reproduce the build and confirm the PCR mapping on-chain
 5. The smart contract records: `(source_repo, commit_hash, compiler_version) → PCR0`
 
-**Why this works**: Voters can now audit readable source code. The link between "code I can read" and "hash the enclave produces" is independently verifiable by anyone with Docker. You don't need to trust the proposer -- you can check their work.
+### Why This Works
+
+Voters can audit readable source code. The link between "code I can read" and "hash the enclave produces" is independently verifiable by anyone with Docker. You don't need to trust the proposer -- you can check their work.
 
 **Why Rust helps**: The enclave proxy is a static musl binary. Given the same `Cargo.lock` and compiler version, the output is deterministic. Python environments are notoriously non-reproducible.
 
-- **Pros**: Meaningful verifiability. Voters can audit source. Independent verification is possible.
-- **Cons**: Requires reproducible build infrastructure. Still depends on voter engagement.
-- **Use case**: Production systems managing real value
+### Optimistic Extension
 
-### Level 4: Optimistic Approval with Challenge Period
+This pairs naturally with an optimistic approval model (inspired by optimistic rollups) that shifts from "everyone must verify" to "anyone *can* verify, and they're incentivized to":
 
-Inspired by optimistic rollups. Shifts the model from "everyone must verify" to "anyone *can* verify, and they're incentivized to."
-
-The process:
 1. A **proposer** submits: source repo + commit hash + build instructions + resulting PCR values + a **stake** (TREZA or USDC)
 2. The proposal enters a **challenge period** (e.g., 7 days)
 3. During the challenge period, anyone can:
@@ -91,19 +61,19 @@ The process:
    - Submit a **challenge** with their own stake
 4. If **unchallenged** after the period expires, the PCR hash is auto-approved
 5. If **challenged**:
-   - A dispute resolution process runs (governance vote, or designated auditor committee)
+   - A dispute resolution process runs (governance vote or arbitration)
    - If the challenge is upheld → proposer's stake is slashed, challenger is rewarded
    - If the challenge fails → challenger's stake is slashed, proposer is rewarded
 
-**Why this is powerful**: You only need **one honest auditor** in the entire ecosystem to catch a malicious proposal. The economic incentive (slash the proposer) means the cost of submitting bad code is high.
+You only need **one honest auditor** in the entire ecosystem to catch a malicious proposal. The economic incentive (slash the proposer) means the cost of submitting bad code is high.
 
-- **Pros**: Highly decentralized. Economic security model. Doesn't require all voters to be technical.
-- **Cons**: 7-day delay for new code approval. Requires meaningful stake amounts.
-- **Use case**: High-value systems (treasury agents, USDC custody, DeFi strategies)
+---
 
-### Level 5: Formal Verification + Automated Approval (Theoretical)
+## Approach 2: Formal Verification + Automated Approval
 
 The ultimate goal: remove humans from the approval loop entirely.
+
+### How It Works
 
 1. Enclave code is written with formal specifications (e.g., "this agent never transfers more than X USDC per day to addresses not on the allowlist")
 2. A proof is generated that the code satisfies these properties
@@ -112,62 +82,81 @@ The ultimate goal: remove humans from the approval loop entirely.
 
 No governance vote needed. The math proves the code is safe.
 
-- **Pros**: Fully automated, no human trust required, instant approval
-- **Cons**: Formal verification of real programs is hard. Only feasible for constrained behaviors.
-- **Use case**: Future -- but specific sub-properties (spending limits, allowlists) are achievable near-term
+### What's Feasible Now vs. Later
+
+Full formal verification of arbitrary programs is an open research problem. But specific, constrained properties are achievable near-term:
+
+| Property | Feasibility | Example |
+|----------|------------|---------|
+| Spending limits | Near-term | "Never transfers > X USDC per day" |
+| Address allowlists | Near-term | "Only sends to addresses in set S" |
+| Rate limiting | Near-term | "Max N transactions per hour" |
+| Data confinement | Medium-term | "Never writes secrets to external storage" |
+| Arbitrary safety | Long-term | "This trading strategy never risks more than Y% of the portfolio" |
+
+### Hybrid Model
+
+The most practical path is to combine both approaches:
+- **Reproducible Builds + Governance** for the overall enclave code approval
+- **Formal Verification** for specific safety properties that can be proven automatically
+- A verified property can reduce the challenge period or lower stake requirements, since math has already covered the critical invariants
 
 ---
 
 ## Recommended Architecture
 
-### Phase 1: Level 2 + Reproducible Builds (Ship First)
+### Phase 1: Reproducible Builds + Optimistic Approval
 
 ```solidity
-// Simplified interface
 interface IEnclaveAttestation {
-    // Governance proposes and approves code
+    // Propose code with source linkage and stake
     function proposeCode(
         string calldata sourceRepo,
         string calldata commitHash,
+        string calldata buildInstructions,
         bytes calldata pcr0,
         bytes calldata pcr1,
         bytes calldata pcr2
-    ) external returns (uint256 proposalId);
+    ) external payable returns (uint256 proposalId);
 
-    // Anyone can confirm they reproduced the build
+    // Anyone can confirm they independently reproduced the build
     function confirmBuild(uint256 proposalId) external;
+
+    // Challenge a proposal during the challenge period
+    function challengeProposal(uint256 proposalId, string calldata reason) external payable;
+
+    // Finalize after challenge period (auto-approves if unchallenged)
+    function finalizeProposal(uint256 proposalId) external;
+
+    // Emergency revocation via governance
+    function revokeApproval(bytes calldata pcr0) external;
 
     // Query: is this PCR0 approved?
     function isApproved(bytes calldata pcr0) external view returns (bool);
 
-    // Query: get full attestation record
+    // Query: full attestation record
     function getAttestation(bytes calldata pcr0) external view returns (
         string memory sourceRepo,
         string memory commitHash,
         uint256 approvedAt,
-        uint256 confirmations
+        uint256 confirmations,
+        bool active
     );
 }
 ```
 
-- Proposals submitted by anyone, approved by `TrezaGovernor`
-- Independent builders can call `confirmBuild()` to record on-chain that they reproduced the PCR mapping
+- Proposals require a stake and enter a challenge period
+- Independent builders call `confirmBuild()` to strengthen confidence
+- Unchallenged proposals auto-approve; challenges trigger governance arbitration
 - Other contracts (escrow, treasury, compliance) call `isApproved(pcr0)` before trusting enclave outputs
+- Emergency `revokeApproval()` path via `TrezaGovernor` for discovered vulnerabilities
 
-### Phase 2: Optimistic Approval (Scale)
+### Phase 2: Formal Verification Layer
 
-Add the challenge/stake mechanism:
-- `proposeCode()` requires a stake deposit
-- Challenge period (configurable, default 7 days)
-- `challengeProposal()` with counter-stake
-- Dispute resolution via `TrezaGovernor`
-- Auto-approval after unchallenged period
-
-### Phase 3: Formal Verification (Long-term)
-
-- ZK proof verification for specific code properties
-- Automated approval for code that proves safety invariants
-- Human governance only for novel or complex changes
+- Add `verifyProperty(uint256 proposalId, bytes calldata zkProof)` for automated safety checks
+- Verified properties can reduce the challenge period or lower stake requirements
+- Start with constrained properties: spending limits, address allowlists, rate limiting
+- ZK proof verification on-chain for specific code invariants
 
 ---
 
