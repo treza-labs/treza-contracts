@@ -65,6 +65,7 @@ credentials.json
 # Test artifacts
 test-results/
 junit.xml
+gasReporterOutput.json
 
 # Solana / Anchor
 solana/target/

@@ -36,7 +36,7 @@ contract TrezaGovernor is
         uint256 _quorumPercentage
     )
         Governor("TrezaGovernor")
-        GovernorSettings(_votingDelay, _votingPeriod, _proposalThreshold)
+        GovernorSettings(uint48(_votingDelay), uint32(_votingPeriod), _proposalThreshold)
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(_quorumPercentage)
         GovernorTimelockControl(_timelock)
@@ -47,7 +47,7 @@ contract TrezaGovernor is
     function votingDelay()
         public
         view
-        override(IGovernor, GovernorSettings)
+        override(Governor, GovernorSettings)
         returns (uint256)
     {
         return super.votingDelay();
@@ -56,7 +56,7 @@ contract TrezaGovernor is
     function votingPeriod()
         public
         view
-        override(IGovernor, GovernorSettings)
+        override(Governor, GovernorSettings)
         returns (uint256)
     {
         return super.votingPeriod();
@@ -65,7 +65,7 @@ contract TrezaGovernor is
     function quorum(uint256 blockNumber)
         public
         view
-        override(IGovernor, GovernorVotesQuorumFraction)
+        override(Governor, GovernorVotesQuorumFraction)
         returns (uint256)
     {
         return super.quorum(blockNumber);
@@ -94,7 +94,7 @@ contract TrezaGovernor is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(Governor, IGovernor) returns (uint256) {
+    ) public override(Governor) returns (uint256) {
         return super.propose(targets, values, calldatas, description);
     }
 

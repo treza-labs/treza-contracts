@@ -41,7 +41,7 @@ describe("KYCVerifier", function () {
     });
 
     it("Should return correct version", async function () {
-      expect(await verifier.version()).to.equal("1.0.0");
+      expect(await verifier.version()).to.equal("1.1.0");
     });
   });
 
@@ -281,6 +281,43 @@ describe("KYCVerifier", function () {
       
       const claims = await verifier.getPublicClaims(proofId);
       expect(claims).to.deep.equal(samplePublicInputs);
+    });
+  });
+
+  describe("PII artifact binding (KYC ↔ opaque hash)", function () {
+    it("Should bind piiArtifactHash after verified proof", async function () {
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const event = (await verifier.queryFilter(verifier.filters.ProofSubmitted()))[0];
+      const proofId = event.args.proofId;
+      await verifier.verifyProof(proofId);
+
+      const piiHash = ethers.keccak256(ethers.toUtf8Bytes("pii-envelope-ref"));
+      await expect(verifier.connect(user1).bindPiiArtifactHash(sampleCommitment, piiHash))
+        .to.emit(verifier, "PiiArtifactHashBound")
+        .withArgs(user1.address, sampleCommitment, piiHash);
+
+      expect(await verifier.kycCommitmentToPiiArtifactHash(sampleCommitment)).to.equal(piiHash);
+    });
+
+    it("Should reject bind from wrong wallet", async function () {
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const event = (await verifier.queryFilter(verifier.filters.ProofSubmitted()))[0];
+      await verifier.verifyProof(event.args.proofId);
+
+      const piiHash = ethers.keccak256(ethers.toUtf8Bytes("x"));
+      await expect(
+        verifier.connect(user2).bindPiiArtifactHash(sampleCommitment, piiHash)
+      ).to.be.revertedWith("No proof for sender");
     });
   });
 });
