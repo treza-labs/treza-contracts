@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { KYCVerifier } from "../../typechain-types";
+import { KYCVerifier, PIIConsentRegistry } from "../../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("KYCVerifier", function () {
@@ -318,6 +318,95 @@ describe("KYCVerifier", function () {
       await expect(
         verifier.connect(user2).bindPiiArtifactHash(sampleCommitment, piiHash)
       ).to.be.revertedWith("No proof for sender");
+    });
+
+    it("Should reject bind before KYC verification", async function () {
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const piiHash = ethers.keccak256(ethers.toUtf8Bytes("unverified-bind"));
+      await expect(
+        verifier.connect(user1).bindPiiArtifactHash(sampleCommitment, piiHash)
+      ).to.be.revertedWith("KYC not verified");
+    });
+
+    it("Should reject bind after proof expiry", async function () {
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const event = (await verifier.queryFilter(verifier.filters.ProofSubmitted()))[0];
+      await verifier.verifyProof(event.args.proofId);
+
+      await ethers.provider.send("evm_increaseTime", [31 * 24 * 60 * 60]);
+      await ethers.provider.send("evm_mine", []);
+
+      const piiHash = ethers.keccak256(ethers.toUtf8Bytes("expired"));
+      await expect(
+        verifier.connect(user1).bindPiiArtifactHash(sampleCommitment, piiHash)
+      ).to.be.revertedWith("KYC expired");
+    });
+  });
+
+  describe("PII ↔ KYC integration", function () {
+    let registry: PIIConsentRegistry;
+    const piiHash = ethers.keccak256(ethers.toUtf8Bytes("consent-bound-pii"));
+    const farFuture = Math.floor(Date.now() / 1000) + 86400 * 365;
+
+    beforeEach(async function () {
+      const Reg = await ethers.getContractFactory("PIIConsentRegistry");
+      registry = await Reg.deploy();
+      await registry.waitForDeployment();
+    });
+
+    it("assertValidKycForPii reflects hasValidKYC", async function () {
+      await expect(verifier.assertValidKycForPii.staticCall(user1.address)).to.be.rejected;
+
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const event = (await verifier.queryFilter(verifier.filters.ProofSubmitted()))[0];
+      await verifier.verifyProof(event.args.proofId);
+
+      await expect(verifier.assertValidKycForPii.staticCall(user1.address)).to.be.fulfilled;
+    });
+
+    it("requireConsentForPii is a no-op when registry unset", async function () {
+      await expect(
+        verifier.requireConsentForPii.staticCall(user1.address, piiHash, user2.address)
+      ).to.be.fulfilled;
+    });
+
+    it("requireConsentForPii enforces on-chain consent when registry is set", async function () {
+      await verifier.setPiiConsentRegistry(await registry.getAddress());
+      await registry.connect(owner).setKycVerifier(await verifier.getAddress());
+
+      await expect(
+        verifier.requireConsentForPii.staticCall(user1.address, piiHash, user2.address)
+      ).to.be.rejected;
+
+      const tx = await verifier.connect(user1).submitProof(
+        sampleCommitment,
+        sampleProof,
+        samplePublicInputs
+      );
+      await tx.wait();
+      const event = (await verifier.queryFilter(verifier.filters.ProofSubmitted()))[0];
+      await verifier.verifyProof(event.args.proofId);
+
+      await registry.connect(user1).grantConsent(piiHash, user2.address, farFuture);
+
+      await expect(
+        verifier.requireConsentForPii.staticCall(user1.address, piiHash, user2.address)
+      ).to.be.fulfilled;
     });
   });
 });

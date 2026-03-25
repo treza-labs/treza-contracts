@@ -61,6 +61,45 @@ describe("PIIConsentRegistry", function () {
     ).to.be.revertedWith("KYC required");
   });
 
+  it("allows grantConsent after verified KYC when gate is enabled", async function () {
+    await registry.connect(owner).setKycVerifier(await kyc.getAddress());
+
+    const commitment = ethers.keccak256(ethers.toUtf8Bytes("user-kyc-commitment"));
+    const proofBytes = ethers.toUtf8Bytes("proof");
+    const pubs = ["isAdult:true"];
+
+    await kyc.connect(user).submitProof(commitment, proofBytes, pubs);
+    const submitted = await kyc.queryFilter(kyc.filters.ProofSubmitted());
+    const proofId = submitted[submitted.length - 1].args.proofId;
+    await kyc.verifyProof(proofId);
+
+    await registry.connect(user).grantConsent(piiHash, recipient.address, farFuture);
+    expect(await registry.verifyConsent(user.address, piiHash, recipient.address)).to.equal(true);
+  });
+
+  it("assigns unique consentIds for consecutive grants", async function () {
+    const tx1 = await registry.connect(user).grantConsent(piiHash, recipient.address, farFuture);
+    const tx2 = await registry.connect(user).grantConsent(piiHash, recipient.address, farFuture);
+    const r1 = await tx1.wait();
+    const r2 = await tx2.wait();
+    const parse = (receipt: typeof r1) =>
+      receipt!.logs
+        .map((log) => {
+          try {
+            return registry.interface.parseLog({
+              topics: log.topics as string[],
+              data: log.data,
+            });
+          } catch {
+            return null;
+          }
+        })
+        .find((p) => p?.name === "ConsentGranted");
+    const id1 = parse(r1)!.args.consentId as string;
+    const id2 = parse(r2)!.args.consentId as string;
+    expect(id1).to.not.equal(id2);
+  });
+
   it("verifyAttributeProof returns true for sufficiently long calldata", async function () {
     expect(await registry.verifyAttributeProof(ethers.randomBytes(33))).to.equal(true);
     expect(await registry.verifyAttributeProof(ethers.randomBytes(16))).to.equal(false);

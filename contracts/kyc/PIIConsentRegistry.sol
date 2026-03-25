@@ -19,6 +19,8 @@ contract PIIConsentRegistry is Ownable {
 
     mapping(address => Consent[]) internal _userConsents;
     mapping(bytes32 => bool) public consentRevoked;
+    /// @dev Ensures unique consentId even for multiple grants in the same block.
+    mapping(address => uint256) private _grantNonce;
 
     /// @notice Optional KYC verifier — when set, grantConsent requires a valid KYC proof.
     address public kycVerifier;
@@ -42,7 +44,8 @@ contract PIIConsentRegistry is Ownable {
         require(piiHash != bytes32(0), "Invalid piiHash");
         require(recipient != address(0), "Invalid recipient");
 
-        bytes32 consentId = keccak256(abi.encodePacked(msg.sender, piiHash, recipient, block.timestamp));
+        uint256 nonce = ++_grantNonce[msg.sender];
+        bytes32 consentId = keccak256(abi.encode(msg.sender, piiHash, recipient, nonce, block.chainid));
         _userConsents[msg.sender].push(
             Consent({ consentId: consentId, piiHash: piiHash, recipient: recipient, expiry: expiry, active: true })
         );

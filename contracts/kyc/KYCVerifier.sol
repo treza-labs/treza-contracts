@@ -274,7 +274,10 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
         require(piiArtifactHash != bytes32(0), "Invalid PII artifact hash");
         bytes32 proofId = userProofs[msg.sender];
         require(proofId != bytes32(0), "No proof for sender");
-        require(proofs[proofId].commitment == kycCommitment, "Commitment not owned by sender");
+        ZKProof storage zkProof = proofs[proofId];
+        require(zkProof.commitment == kycCommitment, "Commitment not owned by sender");
+        require(zkProof.isVerified, "KYC not verified");
+        require(block.timestamp <= zkProof.expiresAt, "KYC expired");
         kycCommitmentToPiiArtifactHash[kycCommitment] = piiArtifactHash;
         emit PiiArtifactHashBound(msg.sender, kycCommitment, piiArtifactHash);
     }
