@@ -4,6 +4,10 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+interface IPIIConsentRegistry {
+    function verifyConsent(address user, bytes32 piiHash, address requester) external view returns (bool);
+}
+
 /**
  * @title KYCVerifier
  * @dev Stores and verifies ZK proofs for KYC verification on-chain
@@ -37,6 +41,12 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
     // Configuration
     uint256 public proofValidityPeriod = 30 days;
     bool public requireVerifierRole = false;
+
+    /// @notice Optional PII consent registry for cross-checking verified users & consent (no PII on-chain).
+    address public piiConsentRegistry;
+
+    /// @notice Opaque hash binding a verified KYC commitment to an off-chain PII envelope id (never raw PII on-chain).
+    mapping(bytes32 => bytes32) public kycCommitmentToPiiArtifactHash;
     
     // Events
     event ProofSubmitted(
@@ -60,6 +70,12 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
     event ValidityPeriodUpdated(
         uint256 oldPeriod,
         uint256 newPeriod
+    );
+
+    event PiiArtifactHashBound(
+        address indexed user,
+        bytes32 indexed kycCommitment,
+        bytes32 piiArtifactHash
     );
     
     /**
@@ -202,6 +218,33 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
     }
     
     /**
+     * @dev Link deployed PIIConsentRegistry (admin).
+     */
+    function setPiiConsentRegistry(address registry) external onlyRole(ADMIN_ROLE) {
+        piiConsentRegistry = registry;
+    }
+
+    /**
+     * @dev Requires verified, non-expired KYC (for composability with PII / consent flows).
+     */
+    function assertValidKycForPii(address user) external view {
+        require(this.hasValidKYC(user), "KYC required for PII operations");
+    }
+
+    /**
+     * @dev Optional consent check when `piiConsentRegistry` is configured.
+     */
+    function requireConsentForPii(address user, bytes32 piiHash, address requester) external view {
+        if (piiConsentRegistry == address(0)) {
+            return;
+        }
+        require(
+            IPIIConsentRegistry(piiConsentRegistry).verifyConsent(user, piiHash, requester),
+            "Missing PII consent"
+        );
+    }
+
+    /**
      * @dev Check if a user has valid KYC
      * @param _user The address to check
      * @return hasValidKYC Whether the user has a valid, verified, non-expired proof
@@ -220,6 +263,23 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
             zkProof.isVerified &&
             block.timestamp <= zkProof.expiresAt
         );
+    }
+
+    /**
+     * @dev Bind KYC ZK commitment to an opaque PII artifact hash (e.g. keccak256(piiId) or envelope digest).
+     *      Caller must be the submitter of the proof that owns `kycCommitment`.
+     */
+    function bindPiiArtifactHash(bytes32 kycCommitment, bytes32 piiArtifactHash) external {
+        require(commitmentExists[kycCommitment], "Unknown KYC commitment");
+        require(piiArtifactHash != bytes32(0), "Invalid PII artifact hash");
+        bytes32 proofId = userProofs[msg.sender];
+        require(proofId != bytes32(0), "No proof for sender");
+        ZKProof storage zkProof = proofs[proofId];
+        require(zkProof.commitment == kycCommitment, "Commitment not owned by sender");
+        require(zkProof.isVerified, "KYC not verified");
+        require(block.timestamp <= zkProof.expiresAt, "KYC expired");
+        kycCommitmentToPiiArtifactHash[kycCommitment] = piiArtifactHash;
+        emit PiiArtifactHashBound(msg.sender, kycCommitment, piiArtifactHash);
     }
     
     /**
@@ -261,7 +321,8 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
     function revokeProof(bytes32 _proofId) external onlyRole(ADMIN_ROLE) {
         require(proofs[_proofId].timestamp > 0, "Proof does not exist");
         
-        // Set expiration to current time (effectively revoking)
+        // Invalidate immediately (same-block expiry would still satisfy timestamp <= expiresAt)
+        proofs[_proofId].isVerified = false;
         proofs[_proofId].expiresAt = block.timestamp;
         
         emit ProofRevoked(_proofId, msg.sender);
@@ -294,7 +355,7 @@ contract KYCVerifier is AccessControl, ReentrancyGuard {
      * @return The version string
      */
     function version() external pure returns (string memory) {
-        return "1.0.0";
+        return "1.1.0";
     }
 }
 

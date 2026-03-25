@@ -16,42 +16,25 @@ describe("TrezaToken", function () {
   let partnershipsWallet: SignerWithAddress;
   let rndWallet: SignerWithAddress;
   let marketingWallet: SignerWithAddress;
-  let timelock: SignerWithAddress;
-
   beforeEach(async function () {
-    [owner, alice, bob, treasury1, treasury2, teamWallet, liquidityWallet, treasuryWallet, partnershipsWallet, rndWallet, marketingWallet, timelock] = await ethers.getSigners();
+    [owner, alice, bob, treasury1, treasury2, teamWallet, liquidityWallet, treasuryWallet, partnershipsWallet, rndWallet, marketingWallet] =
+      await ethers.getSigners();
 
     const TrezaToken = await ethers.getContractFactory("TrezaToken");
-    
+
     const constructorParams = {
-      initialLiquidityWallet: liquidityWallet.address,
       teamWallet: teamWallet.address,
-      treasuryWallet: treasuryWallet.address,
-      partnershipsGrantsWallet: partnershipsWallet.address,
-      rndWallet: rndWallet.address,
+      initialLiquidityWallet: liquidityWallet.address,
       marketingOpsWallet: marketingWallet.address,
+      rndWallet: rndWallet.address,
+      seedInvestorsWallet: partnershipsWallet.address,
+      cexListingWallet: treasuryWallet.address,
       treasury1: treasury1.address,
       treasury2: treasury2.address,
-      timelockDelay: 86400,
     };
 
-    trezaToken = await TrezaToken.deploy(
-      constructorParams,
-      [owner.address], // proposers
-      [owner.address]  // executors
-    );
-
+    trezaToken = await TrezaToken.deploy(constructorParams);
     await trezaToken.waitForDeployment();
-    
-    // Get the timelock controller address for owner functions
-    const timelockAddress = await trezaToken.timelockController();
-    timelock = await ethers.getImpersonatedSigner(timelockAddress);
-    
-    // Fund the timelock with ETH for transactions
-    await owner.sendTransaction({
-      to: timelockAddress,
-      value: ethers.parseEther("10")
-    });
   });
 
   describe("Deployment", function () {
@@ -62,30 +45,13 @@ describe("TrezaToken", function () {
 
     it("Should allocate tokens correctly", async function () {
       const totalSupply = await trezaToken.totalSupply();
-      
-      // Check Initial Liquidity (35%)
-      const liquidityBalance = await trezaToken.balanceOf(liquidityWallet.address);
-      expect(liquidityBalance).to.equal(totalSupply * 35n / 100n);
-      
-      // Check Team (20%)
-      const teamBalance = await trezaToken.balanceOf(teamWallet.address);
-      expect(teamBalance).to.equal(totalSupply * 20n / 100n);
-      
-      // Check Treasury (20%)
-      const treasuryBalance = await trezaToken.balanceOf(treasuryWallet.address);
-      expect(treasuryBalance).to.equal(totalSupply * 20n / 100n);
-      
-      // Check Partnerships & Grants (10%)
-      const partnershipsBalance = await trezaToken.balanceOf(partnershipsWallet.address);
-      expect(partnershipsBalance).to.equal(totalSupply * 10n / 100n);
-      
-      // Check R&D (5%)
-      const rndBalance = await trezaToken.balanceOf(rndWallet.address);
-      expect(rndBalance).to.equal(totalSupply * 5n / 100n);
-      
-      // Check Marketing & Ops (10%)
-      const marketingBalance = await trezaToken.balanceOf(marketingWallet.address);
-      expect(marketingBalance).to.equal(totalSupply * 10n / 100n);
+
+      expect(await trezaToken.balanceOf(teamWallet.address)).to.equal(totalSupply * 65n / 100n);
+      expect(await trezaToken.balanceOf(liquidityWallet.address)).to.equal(totalSupply * 10n / 100n);
+      expect(await trezaToken.balanceOf(marketingWallet.address)).to.equal(totalSupply * 10n / 100n);
+      expect(await trezaToken.balanceOf(rndWallet.address)).to.equal(totalSupply * 5n / 100n);
+      expect(await trezaToken.balanceOf(partnershipsWallet.address)).to.equal(totalSupply * 5n / 100n);
+      expect(await trezaToken.balanceOf(treasuryWallet.address)).to.equal(totalSupply * 5n / 100n);
     });
 
     it("Should set initial fee to 0% during whitelist mode", async function () {
@@ -102,7 +68,7 @@ describe("TrezaToken", function () {
   describe("Transfer Fees", function () {
     it("Should charge 0% fee during whitelist mode", async function () {
       // Enable trading but keep whitelist mode enabled
-      await trezaToken.connect(timelock).setTradingEnabled(true);
+      await trezaToken.connect(owner).setTradingEnabled(true);
       // whitelistMode is true by default
       
       const transferAmount = ethers.parseEther("1000");
@@ -122,15 +88,17 @@ describe("TrezaToken", function () {
     describe("Public Trading Fees", function () {
       beforeEach(async function () {
         // Enable trading and disable whitelist mode for testing public trading fees
-        await trezaToken.connect(timelock).setTradingEnabled(true);
-        await trezaToken.connect(timelock).setWhitelistMode(false);
+        await trezaToken.connect(owner).setTradingEnabled(true);
+        await trezaToken.connect(owner).setWhitelistMode(false);
       });
 
     it("Should charge 5% fee on transfers between non-exempt addresses", async function () {
+      await trezaToken.connect(owner).setTimeBasedAntiSniper(false);
+
       const transferAmount = ethers.parseEther("1000");
       const expectedFee = transferAmount * 5n / 100n; // 5%
       const expectedNet = transferAmount - expectedFee;
-      
+
       // Transfer from liquidityWallet (who has tokens) to bob
       await trezaToken.connect(liquidityWallet).transfer(bob.address, transferAmount);
       
@@ -174,22 +142,20 @@ describe("TrezaToken", function () {
   });
 
   describe("Fee Management", function () {
-    it("Should allow timelock to update fee percentage", async function () {
-      // Use the timelock controller as owner
-      await trezaToken.connect(timelock).setFeePercentage(6);
-      
-      const newFee = await trezaToken.getCurrentFee();
-      expect(newFee).to.equal(6);
+    it("Should allow owner to update fee percentage", async function () {
+      await trezaToken.connect(owner).setFeePercentage(6);
+
+      expect(await trezaToken.currentFeePercentage()).to.equal(6);
     });
 
     it("Should not allow fee percentage above maximum", async function () {
       await expect(
-        trezaToken.connect(timelock).setFeePercentage(15)
+        trezaToken.connect(owner).setFeePercentage(15)
       ).to.be.revertedWith("Treza: fee exceeds maximum");
     });
 
-    it("Should allow timelock to update treasury wallets", async function () {
-      await trezaToken.connect(timelock).setFeeWallets(alice.address, bob.address);
+    it("Should allow owner to update treasury wallets", async function () {
+      await trezaToken.connect(owner).setFeeWallets(alice.address, bob.address);
       
       expect(await trezaToken.treasuryWallet1()).to.equal(alice.address);
       expect(await trezaToken.treasuryWallet2()).to.equal(bob.address);
@@ -199,20 +165,20 @@ describe("TrezaToken", function () {
   describe("Time-Based Anti-Sniper System", function () {
     beforeEach(async function () {
       // Enable trading to activate time-based anti-sniper
-      await trezaToken.connect(timelock).setTradingEnabled(true);
-      await trezaToken.connect(timelock).setWhitelistMode(false);
+      await trezaToken.connect(owner).setTradingEnabled(true);
+      await trezaToken.connect(owner).setWhitelistMode(false);
     });
 
     it("Should transition from 0% fee (whitelist) to 40% fee (public)", async function () {
       // First, enable trading but keep whitelist mode - should be 0% fee
-      await trezaToken.connect(timelock).setTradingEnabled(true);
-      await trezaToken.connect(timelock).setWhitelistMode(true); // Ensure whitelist mode is on
+      await trezaToken.connect(owner).setTradingEnabled(true);
+      await trezaToken.connect(owner).setWhitelistMode(true); // Ensure whitelist mode is on
       
       let currentFee = await trezaToken.getCurrentFee();
       expect(currentFee).to.equal(0); // 0% during whitelist mode
       
       // Now disable whitelist mode (start public trading) - should jump to 40%
-      await trezaToken.connect(timelock).setWhitelistMode(false);
+      await trezaToken.connect(owner).setWhitelistMode(false);
       
       currentFee = await trezaToken.getCurrentFee();
       expect(currentFee).to.equal(40); // 40% in Phase 1 of public trading
@@ -232,10 +198,12 @@ describe("TrezaToken", function () {
 
     it("Should prevent transfers exceeding max wallet limit", async function () {
       const maxWallet = await trezaToken.getCurrentMaxWallet();
-      const excessAmount = maxWallet + ethers.parseEther("1");
-      
+      // Under high fee %, net to recipient is (1 - fee/100) * gross; gross must be large enough
+      // that post-fee balance exceeds maxWallet (maxWallet + 1 wei is not enough at 40% fee).
+      const grossExcess = (maxWallet * 100n) / 60n + ethers.parseEther("1000");
+
       await expect(
-        trezaToken.connect(liquidityWallet).transfer(alice.address, excessAmount)
+        trezaToken.connect(liquidityWallet).transfer(alice.address, grossExcess)
       ).to.be.revertedWith("Treza: max wallet exceeded");
     });
 
@@ -251,18 +219,18 @@ describe("TrezaToken", function () {
 
     it("Should bypass max wallet limit for whitelisted addresses", async function () {
       const maxWallet = await trezaToken.getCurrentMaxWallet();
-      const excessAmount = maxWallet + ethers.parseEther("1000");
-      
+      const grossExcess = (maxWallet * 100n) / 60n + ethers.parseEther("1000");
+
       // Alice is not whitelisted by default, so should fail
       await expect(
-        trezaToken.connect(liquidityWallet).transfer(alice.address, excessAmount)
+        trezaToken.connect(liquidityWallet).transfer(alice.address, grossExcess)
       ).to.be.revertedWith("Treza: max wallet exceeded");
-      
+
       // Whitelist alice
-      await trezaToken.connect(timelock).setWhitelist([alice.address], true);
-      
+      await trezaToken.connect(owner).setWhitelist([alice.address], true);
+
       // Now should succeed
-      await trezaToken.connect(liquidityWallet).transfer(alice.address, excessAmount);
+      await trezaToken.connect(liquidityWallet).transfer(alice.address, grossExcess);
       const aliceBalance = await trezaToken.balanceOf(alice.address);
       expect(aliceBalance).to.be.gt(maxWallet);
     });
@@ -278,7 +246,7 @@ describe("TrezaToken", function () {
 
     it("Should allow disabling time-based anti-sniper", async function () {
       // Disable time-based anti-sniper
-      await trezaToken.connect(timelock).setTimeBasedAntiSniper(false);
+      await trezaToken.connect(owner).setTimeBasedAntiSniper(false);
       
       // Should now use manual fee (5%) since we're not in whitelist mode
       const currentFee = await trezaToken.getCurrentFee();
@@ -299,7 +267,7 @@ describe("TrezaToken", function () {
         { duration: 300, feePercentage: 8, maxWalletPct: 25 }
       ];
       
-      await trezaToken.connect(timelock).setAntiSniperPhases(newPhases);
+      await trezaToken.connect(owner).setAntiSniperPhases(newPhases);
       
       // Check that phases were updated
       const phase0 = await trezaToken.getAntiSniperPhase(0);
@@ -317,7 +285,7 @@ describe("TrezaToken", function () {
       ];
       
       await expect(
-        trezaToken.connect(timelock).setAntiSniperPhases(invalidPhases)
+        trezaToken.connect(owner).setAntiSniperPhases(invalidPhases)
       ).to.be.revertedWith("Treza: fee too high");
     });
   });

@@ -2,7 +2,9 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/utils/Nonces.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -18,7 +20,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * - Delegation support
  * - Same tokenomics as main Treza token
  */
-contract TrezaTokenVoting is ERC20, ERC20Votes, Ownable {
+contract TrezaTokenVoting is ERC20, ERC20Permit, ERC20Votes, Ownable {
     
     // Same constants as main Treza token
     uint256 public constant TOTAL_SUPPLY = 1_000_000_000 * 10**18; // 1 billion tokens
@@ -31,9 +33,9 @@ contract TrezaTokenVoting is ERC20, ERC20Votes, Ownable {
         address _treasury1,
         address _treasury2,
         address _initialHolder
-    ) 
-        ERC20("Treza Governance Token", "TREZAGOV") 
-        ERC20Votes()
+    )
+        ERC20("Treza Governance Token", "TREZAGOV")
+        ERC20Permit("Treza Governance Token")
         Ownable(_initialHolder)
     {
         require(_treasury1 != address(0), "Invalid treasury1 address");
@@ -74,7 +76,7 @@ contract TrezaTokenVoting is ERC20, ERC20Votes, Ownable {
     function nonces(address owner)
         public
         view
-        override(ERC20Votes)
+        override(ERC20Permit, Nonces)
         returns (uint256)
     {
         return super.nonces(owner);
